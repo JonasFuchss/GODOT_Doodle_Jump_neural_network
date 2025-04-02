@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://c7bmoki1sbp2n"]
+
+[ext_resource type="Script" path="res://Scripts/root.gd" id="1_257sp"]
+[ext_resource type="PackedScene" uid="uid://cagdwjihydvqu" path="res://Scenes/nn_controller.tscn" id="1_ggb8p"]
+
+[node name="root" type="Node2D"]
+script = ExtResource("1_257sp")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="nn_controller" parent="." instance=ExtResource("1_ggb8p")]
+
+[connection signal="create_doodle" from="nn_controller" to="." method="_on_nn_controller_create_doodle"]
