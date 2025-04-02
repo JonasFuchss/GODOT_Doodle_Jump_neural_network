@@ -11,6 +11,5 @@ extends RigidBody2D
 var left_force = 0.0
 var right_force = 0.0
 
-
 func _physics_process(delta: float) -> void:
 	pass
