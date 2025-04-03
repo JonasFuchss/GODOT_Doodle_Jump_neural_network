@@ -8,16 +8,26 @@ extends CharacterBody2D
 # mit welcher force doodle sich nach rechts- oder links bewegt.
 
 @export var jumpImpulse= 6.5 * 60
-@export var gravityImpulse :=8.0 *60
-@export var spd= 3.0 *60
+@export var gravityImpulse = 8.0 * 60
+@export var spd = 3.0 * 60
 var dir: float = 0.0
 var vel = Vector2.ZERO
+var viewAreaBase = Vector2.ZERO
+var viewArea: Area2D 
+
+
+func _ready() -> void:
+	viewArea = $ViewArea
+
 
 func _physics_process(delta:float)->void:
-	vel.y+=gravityImpulse*delta
-	if is_on_floor():
-		vel.y= -jumpImpulse
 	
+	vel.y += gravityImpulse * delta
+	if is_on_floor():
+		vel.y -= jumpImpulse
+		viewAreaBase = self.get_last_slide_collision().get_position()
+	
+	viewArea.global_position = viewAreaBase
 	vel.x = dir * spd
 	set_velocity(vel)
 	set_up_direction(Vector2.UP)
