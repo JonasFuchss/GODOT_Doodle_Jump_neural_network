@@ -26,14 +26,15 @@ func _input(event: InputEvent) -> void:
 @onready var height := get_viewport_rect().size.y
 
 var platform = preload("res://Scenes/Platform.tscn")
+var platformCount = 5
+var platforms = []
+var scrollSpeed = 0.05
 
-var platformCount:=5
-@onready var player:= $doodle
-@onready var platformParent:= $Platforms
-var platforms:=[]
-@onready var treshold=height*0.5
-var scrollSpeed=0.05
-@onready var background:Sprite2D= $"Parallax2D/Sprite2D"
+@onready var player: CharacterBody2D= $doodle
+@onready var platformParent: Node2D= $Platforms
+@onready var treshold=height * 0.5
+@onready var background: Sprite2D= $"Parallax2D/Sprite2D"
+
 
 func _ready()-> void:
 	player.global_position.y=treshold

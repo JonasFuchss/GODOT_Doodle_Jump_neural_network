@@ -21,4 +21,6 @@ follow_viewport = false
 [node name="Sprite2D" type="Sprite2D" parent="Parallax2D"]
 texture = ExtResource("3_pe3wc")
 
+[node name="nn_trainer" type="Node" parent="."]
+
 [connection signal="send_direction" from="doodle/nn_controller" to="doodle" method="_on_nn_controller_send_direction"]

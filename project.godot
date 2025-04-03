@@ -13,7 +13,14 @@ config_version=5
 config/name="DoodleJump_Neural_Network"
 run/main_scene="res://Scenes/root.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
-config/icon="res://assets/icon.svg"
+config/icon="res://assets/blue-lik-right.png"
+
+[display]
+
+window/size/viewport_width=320
+window/size/viewport_height=512
+window/stretch/mode="viewport"
+window/stretch/aspect="keep_height"
 
 [editor]
 
