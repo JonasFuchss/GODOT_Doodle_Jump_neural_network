@@ -1,13 +1,24 @@
-[gd_scene load_steps=3 format=3 uid="uid://c7bmoki1sbp2n"]
+[gd_scene load_steps=5 format=3 uid="uid://c7bmoki1sbp2n"]
 
 [ext_resource type="Script" path="res://Scripts/root.gd" id="1_257sp"]
 [ext_resource type="PackedScene" uid="uid://cagdwjihydvqu" path="res://Scenes/nn_controller.tscn" id="1_ggb8p"]
+[ext_resource type="Texture2D" uid="uid://dglm40wl41pkb" path="res://assets/bck.png" id="3_pe3wc"]
+[ext_resource type="PackedScene" uid="uid://bh3rvlkxjewas" path="res://Scenes/doodle.tscn" id="4_1637e"]
 
 [node name="root" type="Node2D"]
 script = ExtResource("1_257sp")
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Platforms" type="Node2D" parent="."]
 
-[node name="nn_controller" parent="." instance=ExtResource("1_ggb8p")]
+[node name="doodle" parent="." instance=ExtResource("4_1637e")]
 
-[connection signal="create_doodle" from="nn_controller" to="." method="_on_nn_controller_create_doodle"]
+[node name="nn_controller" parent="doodle" instance=ExtResource("1_ggb8p")]
+
+[node name="Parallax2D" type="Parallax2D" parent="."]
+scroll_offset = Vector2(160, 0)
+follow_viewport = false
+
+[node name="Sprite2D" type="Sprite2D" parent="Parallax2D"]
+texture = ExtResource("3_pe3wc")
+
+[connection signal="send_direction" from="doodle/nn_controller" to="doodle" method="_on_nn_controller_send_direction"]
