@@ -25,10 +25,8 @@ func _ready()-> void:
 	var y_player_pos = threshold
 	
 	for i in platformCount:
-		var inst = createPlatform(rand_x(), -(platformGap * (i-1)))
-		#inst.global_position.y = height / platformCount*i
-		platformParent.add_child(inst)
-		platforms.append(inst)
+		createPlatform(rand_x(), -(platformGap * (i-1)))
+		
 	# Die unterste Plattform muss unter dem Spieler sein
 	platforms.front().global_position.x = x_player_pos
 	
@@ -38,11 +36,13 @@ func rand_x()->float:
 	return randf_range(28.0, width-28.0)
 
 
-func createPlatform(x, y) -> CharacterBody2D:
+func createPlatform(x, y) -> void:
 	var inst: CharacterBody2D = platform.instantiate()
 	inst.global_position.y = y
 	inst.global_position.x = x
-	return inst
+	platformParent.add_child(inst)
+	inst.connect("out_of_bounds", _on_platform_out_of_bounds)
+	platforms.append(inst)
 
 
 func move_background(move:float)-> void:
@@ -66,3 +66,9 @@ func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float) -> vo
 func _on_doodle_highest_jump(height_y):
 	if camera.position.y > height_y:
 		camera.position.y = height_y
+
+
+func _on_platform_out_of_bounds(emitting_platform: CharacterBody2D):
+	emitting_platform.queue_free()
+	print("platform out of bounds!")
+	createPlatform(rand_x(), camera.position.y - get_viewport_rect().size.y / 2)

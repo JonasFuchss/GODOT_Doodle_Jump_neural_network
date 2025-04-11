@@ -13,6 +13,7 @@ script = ExtResource("1_257sp")
 show_behind_parent = true
 scroll_offset = Vector2(160, -256)
 repeat_size = Vector2(0, 512)
+repeat_times = 2
 ignore_camera_scroll = true
 
 [node name="Sprite2D" type="Sprite2D" parent="Parallax2D"]
