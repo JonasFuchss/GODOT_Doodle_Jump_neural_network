@@ -26,3 +26,6 @@ offset_left = 21.0
 offset_top = -33.0
 offset_right = 61.0
 offset_bottom = -10.0
+
+[connection signal="send_direction" from="nn_controller" to="." method="_on_nn_controller_send_direction"]
+[connection signal="send_seed" from="nn_controller" to="." method="_on_nn_controller_send_seed"]
