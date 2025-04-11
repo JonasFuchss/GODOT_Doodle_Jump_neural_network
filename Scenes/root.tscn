@@ -11,10 +11,9 @@ script = ExtResource("1_257sp")
 
 [node name="Parallax2D" type="Parallax2D" parent="."]
 show_behind_parent = true
-scroll_offset = Vector2(160, -256)
+scroll_offset = Vector2(160, 256)
 repeat_size = Vector2(0, 512)
-repeat_times = 2
-ignore_camera_scroll = true
+repeat_times = 3
 
 [node name="Sprite2D" type="Sprite2D" parent="Parallax2D"]
 texture = ExtResource("3_pe3wc")
