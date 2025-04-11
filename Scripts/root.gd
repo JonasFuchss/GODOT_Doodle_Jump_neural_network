@@ -79,7 +79,6 @@ func _on_doodle_highest_jump(height_y):
 func _on_platform_out_of_bounds(emitting_platform: CharacterBody2D):
 	platforms.pop_front()
 	emitting_platform.queue_free()
-	print("platform out of bounds!")
 	createPlatform(rand_x(), camera.position.y - get_viewport_rect().size.y / 2)
 
 

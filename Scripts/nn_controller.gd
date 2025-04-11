@@ -92,7 +92,7 @@ func decide_v(vector_to_next_platform: Vector2) -> float:
 
 
 func _on_set_weights_and_biases(values, first_gen) -> void:
-	var seed_variation = 0.75
+	var seed_variation = 0.5
 	
 	# Lasse die neuen Weights & Biases von dem vorherigen besten etwas abweichen,
 	# wenn es bereits eine Generation gab (Faktor 0.75).
