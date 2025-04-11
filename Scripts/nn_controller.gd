@@ -35,21 +35,12 @@ const OUTPUTS = 1
 const LEARNING_RATE = 0.1
 
 ## weights and biases for input -> hidden (initially small random values)
-var weights_in = 	[
-						[randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)],
-						[randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)]
-					]
-var biases_in = 	[
-						randf_range(-1.0, 1.0),
-						randf_range(-1.0, 1.0)
-					]
+var weights_in 
+var biases_in
 
 ## weights and biases for hidden -> output
-var weights_out = 	[
-						randf_range(-1.0, 1.0),
-						randf_range(-1.0, 1.0)
-					]
-var biases_out =	randf_range(-1.0, 1.0)
+var weights_out
+var biases_out 
 
 
 func tanh(x) -> float:
@@ -91,12 +82,19 @@ func decide_v(vector_to_next_platform: Vector2) -> float:
 	return output_neuron_out
 
 
+func _on_set_weights_and_biases(values) -> void:
+	weights_in	= values[0]
+	biases_in 	= values[1]
+	weights_out = values[2]
+	biases_out 	= values[3]
+
+
 func _process(delta: float) -> void:
 	v = decide_v(get_vector_to_next_platform())
 	send_direction.emit(v)
 	
-	# Check, ob die Plattform sich unterhalb des Viewports befindet.
+	# Check, ob der Doodle sich unterhalb des Viewports befindet.
 	var cutoff: float = cam.position.y + get_viewport_rect().size.y / 2
-	if position.y > cutoff and not died:
-		died = true
+	if get_parent().position.y > cutoff and not died:
 		send_seed.emit(weights_in, biases_in, weights_out, biases_out)
+		died = true

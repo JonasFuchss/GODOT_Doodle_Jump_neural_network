@@ -17,7 +17,7 @@ var label: Label
 var camera: Camera2D
 
 signal new_highest_jump(height_y)
-signal doodle_death(weights_in: Array, biases_in: Array, weights_out: Array, biases_out: float, score: float)
+signal death_by_falling(weights_in: Array, biases_in: Array, weights_out: Array, biases_out: float, score: float)
 
 
 func _ready() -> void:
@@ -72,4 +72,5 @@ func _on_nn_controller_send_seed(weights_in: Array, biases_in: Array, weights_ou
 	# wenn der controller seine Daten sendet, bedeutet das, dass der Doodle
 	# aus der Map gefallen ("gestorben") ist. Also Daten und Highscore an den
 	# Trainer weitergeben und Doodle-Instanz für's löschen queuen.
-	doodle_death.emit(weights_in, biases_in, weights_out, biases_out, highestJump)
+	death_by_falling.emit(weights_in, biases_in, weights_out, biases_out, highestJump)
+	queue_free()

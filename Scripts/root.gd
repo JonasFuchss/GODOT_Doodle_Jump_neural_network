@@ -17,6 +17,7 @@ var camera: Camera2D
 
 
 signal level_built(x_spawn, y_spawn)
+signal set_weights_and_biases(values: Array)
 
 func _ready()-> void:
 	camera = $Camera2D
@@ -54,12 +55,20 @@ func game_over()-> void:
 	get_tree().reload_current_scene()
 
 
-func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float) -> void:
+func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, values: Array) -> void:
 	var doodle: CharacterBody2D = Doodle.instantiate()
 	trainer.add_child(doodle)
 	doodle.translate(Vector2(x, y))
 	doodle.add_to_group("doodles")
 	doodle.connect("new_highest_jump", _on_doodle_highest_jump)
+	
+	# Verbinde auch das Death-Signal des Doodles mit dem Trainer:
+	doodle.connect("death_by_falling", get_node("nn_trainer")._on_doodle_death_by_falling)
+	
+	# Verbindung der SETTER-Funktion für den individuellen Controller
+	self.connect("set_weights_and_biases", doodle.get_node("nn_controller")._on_set_weights_and_biases)
+	set_weights_and_biases.emit(values)
+	
 	camera.position.y = doodle.position.y - 30
 
 
