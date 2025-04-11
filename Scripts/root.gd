@@ -11,7 +11,8 @@ var camera: Camera2D
 @onready var height := get_viewport_rect().size.y
 @onready var trainer: Node = $nn_trainer
 @onready var platformParent: Node2D= $Platforms
-@onready var threshold = height * 0.7
+@onready var threshold: float = 0.0
+@onready var platformGap: float = height / (platformCount)
 @onready var background: Sprite2D= $"Parallax2D/Sprite2D"
 
 
@@ -24,13 +25,12 @@ func _ready()-> void:
 	var y_player_pos = threshold
 	
 	for i in platformCount:
-		var inst = platform.instantiate()
-		inst.global_position.y = height / platformCount*i
-		inst.global_position.x = rand_x()
+		var inst = createPlatform(rand_x(), -(platformGap * (i-1)))
+		#inst.global_position.y = height / platformCount*i
 		platformParent.add_child(inst)
 		platforms.append(inst)
 	# Die unterste Plattform muss unter dem Spieler sein
-	platforms.back().global_position.x = x_player_pos
+	platforms.front().global_position.x = x_player_pos
 	
 	level_built.emit(x_player_pos, y_player_pos)
 	
@@ -38,8 +38,15 @@ func rand_x()->float:
 	return randf_range(28.0, width-28.0)
 
 
+func createPlatform(x, y) -> CharacterBody2D:
+	var inst: CharacterBody2D = platform.instantiate()
+	inst.global_position.y = y
+	inst.global_position.x = x
+	return inst
+
+
 func move_background(move:float)-> void:
-	var ratio :=0.75
+	var ratio: float = 0.75
 	background.global_position.y=fmod((background.global_position.y+height+move*ratio), height)-height
 
 
@@ -53,6 +60,7 @@ func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float) -> vo
 	doodle.translate(Vector2(x, y))
 	doodle.add_to_group("doodles")
 	doodle.connect("new_highest_jump", _on_doodle_highest_jump)
+	camera.position.y = doodle.position.y - 30
 
 
 func _on_doodle_highest_jump(height_y):

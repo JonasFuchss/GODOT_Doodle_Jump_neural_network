@@ -11,7 +11,7 @@ script = ExtResource("1_257sp")
 
 [node name="Parallax2D" type="Parallax2D" parent="."]
 show_behind_parent = true
-scroll_offset = Vector2(160, 256)
+scroll_offset = Vector2(160, -256)
 repeat_size = Vector2(0, 512)
 ignore_camera_scroll = true
 
@@ -22,7 +22,7 @@ texture = ExtResource("3_pe3wc")
 script = ExtResource("5_bf6py")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(160, 285)
+position = Vector2(160, -255)
 
 [connection signal="level_built" from="." to="nn_trainer" method="_on_root_level_built"]
 [connection signal="create_doodle" from="nn_trainer" to="." method="_on_nn_trainer_create_doodle"]
