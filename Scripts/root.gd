@@ -5,6 +5,7 @@ var platform = preload("res://Scenes/Platform.tscn")
 var platformCount = 5
 var platforms = []
 var scrollSpeed = 0.05
+var camera: Camera2D
 
 @onready var width := get_viewport_rect().size.x
 @onready var height := get_viewport_rect().size.y
@@ -17,6 +18,8 @@ var scrollSpeed = 0.05
 signal level_built(x_spawn, y_spawn)
 
 func _ready()-> void:
+	camera = $Camera2D
+	
 	var x_player_pos = rand_x()
 	var y_player_pos = threshold
 	
@@ -48,3 +51,10 @@ func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float) -> vo
 	var doodle: CharacterBody2D = Doodle.instantiate()
 	trainer.add_child(doodle)
 	doodle.translate(Vector2(x, y))
+	doodle.add_to_group("doodles")
+	doodle.connect("new_highest_jump", _on_doodle_highest_jump)
+
+
+func _on_doodle_highest_jump(height_y):
+	if camera.position.y > height_y:
+		camera.position.y = height_y

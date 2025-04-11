@@ -1,9 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://bh3rvlkxjewas"]
+[gd_scene load_steps=5 format=3 uid="uid://bh3rvlkxjewas"]
 
 [ext_resource type="Script" path="res://Scripts/doodle_brain.gd" id="1_si4gl"]
 [ext_resource type="Texture2D" uid="uid://4a0ry5v0p7l1" path="res://assets/blue-lik-right.png" id="2_ibcvm"]
 [ext_resource type="PackedScene" uid="uid://cagdwjihydvqu" path="res://Scenes/nn_controller.tscn" id="3_lgcr8"]
-[ext_resource type="PackedScene" uid="uid://ctcfv2rim2dwk" path="res://Scenes/view_area.tscn" id="4_8mix8"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_j2r31"]
 radius = 16.0
@@ -22,6 +21,8 @@ texture = ExtResource("2_ibcvm")
 
 [node name="nn_controller" parent="." instance=ExtResource("3_lgcr8")]
 
-[node name="ViewArea" parent="." instance=ExtResource("4_8mix8")]
-position = Vector2(5.96046e-08, -69)
-scale = Vector2(2.5, 2.5)
+[node name="Label" type="Label" parent="."]
+offset_left = 21.0
+offset_top = -33.0
+offset_right = 61.0
+offset_bottom = -10.0

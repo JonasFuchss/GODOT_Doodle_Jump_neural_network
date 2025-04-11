@@ -12,22 +12,37 @@ extends CharacterBody2D
 @export var spd = 3.0 * 60
 var dir: float = 0.0
 var vel = Vector2.ZERO
-var viewAreaBase = Vector2.ZERO
-var viewArea: Area2D 
+var highestJump: float = 999.0
+var label: Label
+var camera: Camera2D
+
+signal new_highest_jump(height_y)
 
 
 func _ready() -> void:
-	viewArea = $ViewArea
+	label = $Label
+	camera = get_parent().get_node("Camera2D")
 
 
 func _physics_process(delta:float)->void:
 	
-	vel.y += gravityImpulse * delta
 	if is_on_floor():
-		vel.y -= jumpImpulse
-		viewAreaBase = self.get_last_slide_collision().get_position()
+		vel.y = -jumpImpulse
+	else:
+		vel.y += gravityImpulse * delta
+		
+	if highestJump > position.y:
+		highestJump = position.y
+		label.set_text(str(roundf(highestJump)))
+		new_highest_jump.emit(highestJump)
+		
 	
-	viewArea.global_position = viewAreaBase
+	# DEBUG STEUERUNG MIT ARROWKEYS
+	if Input.is_action_pressed("ui_left"):
+		dir = -1.0
+	if Input.is_action_pressed("ui_right"):
+		dir = 1.0
+	
 	vel.x = dir * spd
 	set_velocity(vel)
 	set_up_direction(Vector2.UP)
