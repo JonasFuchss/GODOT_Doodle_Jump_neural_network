@@ -35,12 +35,21 @@ const OUTPUTS = 1
 const LEARNING_RATE = 0.1
 
 ## weights and biases for input -> hidden (initially small random values)
-var weights_in 
-var biases_in
+var weights_in = 	[
+						[randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)],
+						[randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)]
+					]
+var biases_in = 	[
+						randf_range(-1.0, 1.0),
+						randf_range(-1.0, 1.0)
+					]
 
 ## weights and biases for hidden -> output
-var weights_out
-var biases_out 
+var weights_out = 	[
+						randf_range(-1.0, 1.0),
+						randf_range(-1.0, 1.0)
+					]
+var biases_out =	randf_range(-1.0, 1.0)
 
 
 func tanh(x) -> float:
@@ -82,7 +91,74 @@ func decide_v(vector_to_next_platform: Vector2) -> float:
 	return output_neuron_out
 
 
-func _on_set_weights_and_biases(values) -> void:
+func _on_set_weights_and_biases(values, first_gen) -> void:
+	var seed_variation = 0.75
+	
+	# Lasse die neuen Weights & Biases von dem vorherigen besten etwas abweichen,
+	# wenn es bereits eine Generation gab (Faktor 0.75).
+	if not first_gen:
+		values = [
+			[
+				[randf_range(
+					-values[0][0][0] * (1 - seed_variation),
+					 values[0][0][0] * (1 + seed_variation)
+				),
+				randf_range(
+					-values[0][0][1] * (1 - seed_variation),
+					 values[0][0][1] * (1 + seed_variation)
+				)],
+				[randf_range(
+					-values[0][1][0] * (1 - seed_variation),
+					 values[0][0][0] * (1 + seed_variation)
+				),
+				randf_range(
+					-values[0][1][1] * (1 - seed_variation),
+					 values[0][1][1] * (1 + seed_variation)
+				)]
+			],
+			[
+				randf_range(
+					-values[1][0] * (1 - seed_variation),
+					 values[1][0] * (1 + seed_variation)
+				),
+				randf_range(
+					-values[1][1] * (1 - seed_variation),
+					 values[1][1] * (1 + seed_variation)
+				)
+			],
+			[
+				randf_range(
+					-values[2][0] * (1 - seed_variation),
+					 values[2][0] * (1 + seed_variation)
+				),
+				randf_range(
+					-values[2][1] * (1 - seed_variation),
+					 values[2][1] * (1 + seed_variation)
+				)
+			],
+			randf_range(
+					-values[3] * (1 - seed_variation),
+					 values[3] * (1 + seed_variation)
+			)
+		]
+	else:
+		# Ist dies die erste Generation, verwende komplett zufällige Werte.
+		values = [
+			[
+				[randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)],
+				[randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)]
+			],
+			[
+				randf_range(-1.0, 1.0),
+				randf_range(-1.0, 1.0)
+			],
+			[
+				randf_range(-1.0, 1.0),
+				randf_range(-1.0, 1.0)
+			],
+			randf_range(-1.0, 1.0)
+		]
+	
 	weights_in	= values[0]
 	biases_in 	= values[1]
 	weights_out = values[2]

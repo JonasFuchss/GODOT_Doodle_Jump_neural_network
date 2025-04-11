@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://bh3rvlkxjewas"]
+[gd_scene load_steps=6 format=3 uid="uid://bh3rvlkxjewas"]
 
 [ext_resource type="Script" path="res://Scripts/doodle_brain.gd" id="1_si4gl"]
 [ext_resource type="Texture2D" uid="uid://4a0ry5v0p7l1" path="res://assets/blue-lik-right.png" id="2_ibcvm"]
@@ -7,6 +7,9 @@
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_j2r31"]
 radius = 16.0
 height = 54.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_kt8r7"]
+font_color = Color(0.782979, 0.433376, 1.92523e-07, 1)
 
 [node name="doodle" type="CharacterBody2D"]
 collision_layer = 2
@@ -26,6 +29,7 @@ offset_left = 21.0
 offset_top = -33.0
 offset_right = 61.0
 offset_bottom = -10.0
+label_settings = SubResource("LabelSettings_kt8r7")
 
 [connection signal="send_direction" from="nn_controller" to="." method="_on_nn_controller_send_direction"]
 [connection signal="send_seed" from="nn_controller" to="." method="_on_nn_controller_send_seed"]

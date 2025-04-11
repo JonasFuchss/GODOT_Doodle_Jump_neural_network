@@ -26,3 +26,4 @@ position = Vector2(160, -255)
 
 [connection signal="level_built" from="." to="nn_trainer" method="_on_root_level_built"]
 [connection signal="create_doodle" from="nn_trainer" to="." method="_on_nn_trainer_create_doodle"]
+[connection signal="need_new_level" from="nn_trainer" to="." method="_on_nn_trainer_need_new_level"]
