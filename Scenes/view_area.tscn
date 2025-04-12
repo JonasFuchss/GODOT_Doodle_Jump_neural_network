@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://ctcfv2rim2dwk"]
+
+[ext_resource type="Script" path="res://Scenes/view_area.gd" id="1_2d12p"]
+[ext_resource type="Texture2D" uid="uid://b820g4snabcf0" path="res://assets/game-tiles.png" id="1_qek3s"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_d15og"]
+size = Vector2(120, 75)
+
+[node name="ViewArea" type="Area2D"]
+collision_layer = 0
+collision_mask = 0
+gravity = 0.0
+script = ExtResource("1_2d12p")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_d15og")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(-0.250008, -0.25)
+scale = Vector2(0.133889, 0.145508)
+texture = ExtResource("1_qek3s")
+
+[node name="Camera2D" type="Camera2D" parent="."]
