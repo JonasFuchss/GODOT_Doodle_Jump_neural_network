@@ -4,6 +4,10 @@ var platforms = null
 var cam: Camera2D = null
 var died = false
 
+# damit das Modell nach einem Sprung sofort die nächste Platform anvisiert, muss
+# die vorherige geblacklisted werden.
+var forbidden_platforms: Object
+
 signal send_direction(direction)
 signal send_seed(weights_in, biases_in, weights_out, biases_out)
 
@@ -17,18 +21,23 @@ func get_vector_to_next_platform() -> Vector2:
 	var to_next: Vector2
 	var stack: Array = platforms.get_children()
 	
-	# zweites Element ist immer die Platform, auf die der Doodle springen muss
-	to_next = stack[1].global_position - self.global_position
+	if stack[1] != forbidden_platforms:
+		# zweites Element ist immer die Platform, auf die der Doodle springen muss,
+		# wenn die erste PLatform nicht mehr existiert (also wenn der Doodle
+		# im Apex seinen Sprungs ist und die erste Platform out of bounds geht
+		to_next = stack[1].global_position - self.global_position
+	else:
+		to_next = stack[2].global_position - self.global_position
 	return to_next
 
 
-## vector as given by the nn. shall be between -1.0 and 1.0
-## Determines how much the nn "pushes" the joystick to left or right,
-## to control the doodle left/right-movement.
-var v: float = 0.0
+# direction as given by the nn. shall be between -1.0 and 1.0
+# Determines how much the nn "pushes" the joystick to left or right,
+# to control the doodle left/right-movement.
+var dir: float = 0.0
 
-## number of input-layers (x_diff & y_diff), output-layers (v) and hidden-
-## layers with neurons for calculations via tanh.
+# number of input-layers (x_diff & y_diff), output-layers (v) and hidden-
+# layers with neurons for calculations via tanh.
 const INPUTS = 2
 const HIDDEN_LAYERS = 2
 const OUTPUTS = 1
@@ -70,7 +79,7 @@ func tanh_deriv(x) -> float:
 	return 1 - (x ** 2)
 
 
-func decide_v(vector_to_next_platform: Vector2) -> float:
+func decide_dir(vector_to_next_platform: Vector2) -> float:
 	var distance_x = vector_to_next_platform.x
 	var distance_y = vector_to_next_platform.y
 	
@@ -92,10 +101,10 @@ func decide_v(vector_to_next_platform: Vector2) -> float:
 
 
 func _on_set_weights_and_biases(values, first_gen) -> void:
-	var seed_variation = 0.3
+	var seed_variation = 0.5
 	
 	# Lasse die neuen Weights & Biases von dem vorherigen besten etwas abweichen,
-	# wenn es bereits eine Generation gab (Faktor 0.75).
+	# wenn es bereits eine Generation gab (Faktor 0.5).
 	if not first_gen:
 		values = [
 			[
@@ -166,11 +175,15 @@ func _on_set_weights_and_biases(values, first_gen) -> void:
 
 
 func _process(delta: float) -> void:
-	v = decide_v(get_vector_to_next_platform())
-	send_direction.emit(v)
+	dir = decide_dir(get_vector_to_next_platform())
+	send_direction.emit(dir)
 	
 	# Check, ob der Doodle sich unterhalb des Viewports befindet.
 	var cutoff: float = cam.position.y + get_viewport_rect().size.y / 2
 	if get_parent().position.y > cutoff and not died:
 		send_seed.emit(weights_in, biases_in, weights_out, biases_out)
 		died = true
+
+
+func _on_doodle_touched_platform(platform: Object) -> void:
+	forbidden_platforms = platform

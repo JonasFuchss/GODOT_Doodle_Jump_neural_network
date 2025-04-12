@@ -18,6 +18,7 @@ var camera: Camera2D
 
 signal new_highest_jump(height_y)
 signal death_by_falling(weights_in: Array, biases_in: Array, weights_out: Array, biases_out: float, score: float)
+signal touched_platform(platform: Object)
 
 
 func _ready() -> void:
@@ -30,12 +31,15 @@ func _physics_process(delta:float)->void:
 	# Wenn der Doodle eine Platform berührt, springe automatisch
 	if is_on_floor():
 		vel.y = -jumpImpulse
+		var collisionObjId = get_last_slide_collision().get_collider_id()
+		var platform_instance = instance_from_id(collisionObjId)
+		touched_platform.emit(platform_instance)
 	else:
 		vel.y += gravityImpulse * delta
 	
 	if highestJump > position.y:
 		highestJump = position.y
-		label.set_text(str(roundf(highestJump)))
+		label.set_text(str(abs(roundf(highestJump))))
 		new_highest_jump.emit(highestJump)
 	
 	# Wenn der Doodle out of bounds geht, tp auf die andere Seite

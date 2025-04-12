@@ -45,15 +45,6 @@ func createPlatform(x, y) -> void:
 	platforms.append(inst)
 
 
-func move_background(move:float)-> void:
-	var ratio: float = 0.75
-	background.global_position.y=fmod((background.global_position.y+height+move*ratio), height)-height
-
-
-func game_over()-> void:
-	get_tree().reload_current_scene()
-
-
 func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, values: Array, first_gen: bool):
 	var doodle: CharacterBody2D = Doodle.instantiate()
 	trainer.add_child(doodle)
@@ -74,6 +65,11 @@ func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, value
 func _on_doodle_highest_jump(height_y):
 	if camera.position.y > height_y:
 		camera.position.y = height_y
+		
+	# setze den neuen Highscore im UI
+	var highscore_label: Label = get_node("Camera2D/Header/Highscore")
+	if float(highscore_label.get_text()) < abs(height_y):
+		highscore_label.set_text(str(abs(roundf(height_y))))
 
 
 func _on_platform_out_of_bounds(emitting_platform: CharacterBody2D):
@@ -82,9 +78,9 @@ func _on_platform_out_of_bounds(emitting_platform: CharacterBody2D):
 	createPlatform(rand_x(), camera.position.y - get_viewport_rect().size.y / 2)
 
 
-func _on_nn_trainer_need_new_level() -> void:
-	# resette die Kamera auf 0,0
-	camera.set_position(Vector2(width/2,0))
+func _on_nn_trainer_need_new_level(generation_number) -> void:
+	# resette die Kamera auf 0
+	camera.set_position(Vector2(width/2, 0))
 	
 	# lösche alle platformen
 	for p in platforms:
@@ -100,5 +96,9 @@ func _on_nn_trainer_need_new_level() -> void:
 		
 	# Die unterste Plattform muss unter dem Spieler sein
 	platforms.front().global_position.x = x_player_pos
+	
+	# Setze die Generationen-Zahl für's on-Screen Label
+	var gen_label: Label = get_node("Camera2D/Header/Generation")
+	gen_label.set_text(str(generation_number))
 	
 	level_built.emit(x_player_pos, y_player_pos)
