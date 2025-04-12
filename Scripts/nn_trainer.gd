@@ -60,8 +60,6 @@ func _on_doodle_death_by_falling(weights_in: Array, biases_in: Array, weights_ou
 	
 	# Generation gestorben. Alle runtergefallen.
 	if current_pops == 0:
-		print("Generation failed. Höchster Score: ", this_gen_record_height, "!\nAktuell bester Seed:\n", current_record_seed)
-		
 		# um dem entgegenzuwirken, dass Doodles "lernen" auf der Stelle zu springen,
 		# da sie dann die letzten Überlebenden sind, wird, falls der Rekord der
 		# aktuellen Generation 3x in Folge GERINGER als der der vorherigen ist,
