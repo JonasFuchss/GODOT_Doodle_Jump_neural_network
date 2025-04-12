@@ -1,4 +1,4 @@
-Der aktuell beste Seed (mit einem Score von >300.000):
+Der aktuell beste Seed (mit einem Score von >389.000 in Generation 4):
 [
     [
         [
