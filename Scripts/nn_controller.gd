@@ -3,10 +3,11 @@ extends Node2D
 var platforms = null
 var cam: Camera2D = null
 var died = false
+var init_seed_variation = 0.8
 
 # damit das Modell nach einem Sprung sofort die nächste Platform anvisiert, muss
 # die vorherige geblacklisted werden.
-var forbidden_platforms: Object
+var forbidden_platform: Object
 
 signal send_direction(direction)
 signal send_seed(weights_in, biases_in, weights_out, biases_out)
@@ -21,7 +22,7 @@ func get_vector_to_next_platform() -> Vector2:
 	var to_next: Vector2
 	var stack: Array = platforms.get_children()
 	
-	if stack[1] != forbidden_platforms:
+	if stack[1] != forbidden_platform:
 		# zweites Element ist immer die Platform, auf die der Doodle springen muss,
 		# wenn die erste PLatform nicht mehr existiert (also wenn der Doodle
 		# im Apex seinen Sprungs ist und die erste Platform out of bounds geht
@@ -71,15 +72,18 @@ func tanh(x) -> float:
 	return (exp(x) - exp(-x)) / (exp(x) + exp(-x))
 
 
-func tanh_deriv(x) -> float:
-	"""
-	Returns the derivative (dt. Ableitung) of tanh on the given float.
-	Resulting value is between 0.0 and 0.25
-	"""
-	return 1 - (x ** 2)
-
-
 func decide_dir(vector_to_next_platform: Vector2) -> float:
+	"""
+	Entscheidet, in welche Richtung das neuronale Netz den Doodle
+	als nächstes steuern wird. Dies geschieht anhand der übergebenen x-
+	und y-Werte der nächsten Platform, und den vorher festgelegten weights
+	und biases der Hidden- / Output-Layers.
+	Die Ausgabe ist ein Float zwischen -1 und +1;
+	-1 = voll nach links, 
+	+1 = voll nach rechts,
+	 0 = keine Richtungssteuerung des Netzes.
+	"""
+	
 	var distance_x = vector_to_next_platform.x
 	var distance_y = vector_to_next_platform.y
 	
@@ -89,7 +93,7 @@ func decide_dir(vector_to_next_platform: Vector2) -> float:
 	# Hidden neuron 1:
 	var hidden_input_1 = (distance_x * weights_in[0][1]) + (distance_y * weights_in[1][1]) + biases_in[1]
 	
-	# convert to 0-1 range:
+	# convert to -1 <-> 1 range:
 	var hidden_output_0 = tanh(hidden_input_0)
 	var hidden_output_1 = tanh(hidden_input_1)
 	
@@ -100,54 +104,62 @@ func decide_dir(vector_to_next_platform: Vector2) -> float:
 	return output_neuron_out
 
 
-func _on_set_weights_and_biases(values, first_gen) -> void:
-	var seed_variation = 0.5
+func lower_border(seed, variation) -> float:
+	return seed - (seed + 1) * variation
+
+
+func upper_border(seed, variation) -> float:
+	return seed + (1 - seed) * variation
+
+
+func _on_root_set_weights_and_biases(values, gencount) -> void:
+	var cur_seed_variation = init_seed_variation / gencount
 	
 	# Lasse die neuen Weights & Biases von dem vorherigen besten etwas abweichen,
-	# wenn es bereits eine Generation gab (Faktor 0.5).
-	if not first_gen:
+	# wenn es bereits eine Generation gab.
+	if gencount != 0:
 		values = [
 			[
 				[randf_range(
-					-values[0][0][0] * (1 - seed_variation),
-					 values[0][0][0] * (1 + seed_variation)
+					lower_border(values[0][0][0], cur_seed_variation),
+					upper_border(values[0][0][0], cur_seed_variation)
 				),
 				randf_range(
-					-values[0][0][1] * (1 - seed_variation),
-					 values[0][0][1] * (1 + seed_variation)
+					lower_border(values[0][0][1], cur_seed_variation),
+					upper_border(values[0][0][1], cur_seed_variation)
 				)],
 				[randf_range(
-					-values[0][1][0] * (1 - seed_variation),
-					 values[0][0][0] * (1 + seed_variation)
+					lower_border(values[0][1][0], cur_seed_variation),
+					upper_border(values[0][1][0], cur_seed_variation)
 				),
 				randf_range(
-					-values[0][1][1] * (1 - seed_variation),
-					 values[0][1][1] * (1 + seed_variation)
+					lower_border(values[0][1][1], cur_seed_variation),
+					upper_border(values[0][1][1], cur_seed_variation)
 				)]
 			],
 			[
 				randf_range(
-					-values[1][0] * (1 - seed_variation),
-					 values[1][0] * (1 + seed_variation)
+					lower_border(values[1][0], cur_seed_variation),
+					upper_border(values[1][0], cur_seed_variation)
 				),
 				randf_range(
-					-values[1][1] * (1 - seed_variation),
-					 values[1][1] * (1 + seed_variation)
+					lower_border(values[1][1], cur_seed_variation),
+					upper_border(values[1][1], cur_seed_variation)
 				)
 			],
 			[
 				randf_range(
-					-values[2][0] * (1 - seed_variation),
-					 values[2][0] * (1 + seed_variation)
+					lower_border(values[2][0], cur_seed_variation),
+					upper_border(values[2][0], cur_seed_variation)
 				),
 				randf_range(
-					-values[2][1] * (1 - seed_variation),
-					 values[2][1] * (1 + seed_variation)
+					lower_border(values[2][1], cur_seed_variation),
+					upper_border(values[2][1], cur_seed_variation)
 				)
 			],
 			randf_range(
-					-values[3] * (1 - seed_variation),
-					 values[3] * (1 + seed_variation)
+					lower_border(values[3], cur_seed_variation),
+					upper_border(values[3], cur_seed_variation)
 			)
 		]
 	else:
@@ -186,4 +198,4 @@ func _process(delta: float) -> void:
 
 
 func _on_doodle_touched_platform(platform: Object) -> void:
-	forbidden_platforms = platform
+	forbidden_platform = platform

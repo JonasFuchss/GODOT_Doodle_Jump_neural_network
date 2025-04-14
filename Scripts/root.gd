@@ -16,7 +16,7 @@ var camera: Camera2D
 @onready var background: Sprite2D= $"Parallax2D/Sprite2D"
 
 signal level_built(x_spawn, y_spawn)
-signal set_weights_and_biases(values: Array, first_gen: bool)
+signal root_set_weights_and_biases(values: Array, first_gen: bool, gencount: int)
 
 func _ready()-> void:
 	camera = $Camera2D
@@ -25,7 +25,7 @@ func _ready()-> void:
 	var y_player_pos = threshold
 	
 	for i in platformCount:
-		createPlatform(rand_x(), -(platformGap * randf_range(0.8, 1.0) * (i-1)))
+		createPlatform(rand_x(), -(platformGap * randf_range(0.85, 1.0) * (i-1)))
 		
 	# Die unterste Plattform muss unter dem Spieler sein
 	platforms.front().global_position.x = x_player_pos
@@ -45,7 +45,7 @@ func createPlatform(x, y) -> void:
 	platforms.append(inst)
 
 
-func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, values: Array, first_gen: bool):
+func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, values: Array, gencount: int):
 	var doodle: CharacterBody2D = Doodle.instantiate()
 	trainer.add_child(doodle)
 	doodle.translate(Vector2(x, y))
@@ -56,8 +56,8 @@ func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, value
 	doodle.connect("death_by_falling", get_node("nn_trainer")._on_doodle_death_by_falling)
 	
 	# Verbindung der SETTER-Funktion für den individuellen Controller
-	self.connect("set_weights_and_biases", doodle.get_node("nn_controller")._on_set_weights_and_biases)
-	set_weights_and_biases.emit(values, first_gen)
+	self.connect("root_set_weights_and_biases", doodle.get_node("nn_controller")._on_root_set_weights_and_biases)
+	root_set_weights_and_biases.emit(values, gencount)
 	
 	camera.position.y = doodle.position.y - 30
 
@@ -88,11 +88,11 @@ func _on_nn_trainer_need_new_level(generation_number) -> void:
 	platforms.clear()
 
 	var x_player_pos = rand_x()
-	var y_player_pos = threshold
+	var y_player_pos = threshold-10
 	
 	# erstelle neue Platformen
 	for i in platformCount:
-		createPlatform(rand_x(), -(platformGap * randf_range(0.8, 1.0) * (i-1)))
+		createPlatform(rand_x(), -(platformGap * randf_range(0.85, 1.0) * (i-1)))
 		
 	# Die unterste Plattform muss unter dem Spieler sein
 	platforms.front().global_position.x = x_player_pos
