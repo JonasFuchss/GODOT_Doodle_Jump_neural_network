@@ -1,7 +1,7 @@
 extends Node
 
 var generation_count = 0
-var pop_count = 100
+var pop_count = 200
 var current_pops = 0
 var spawn_coord = []
 
@@ -24,7 +24,7 @@ func _ready() -> void:
 
 func create_generation() -> void:
 	if generation_count != 0:
-		print("Abweichung: ", str(0.7 / generation_count))
+		print("Abweichung: ", str(0.5 / generation_count))
 	for pop in pop_count:
 		current_pops += 1
 		create_doodle.emit(Doodle, spawn_coord[0], spawn_coord[1], current_record_seed, generation_count)

@@ -3,7 +3,7 @@ extends Node2D
 var platforms = null
 var cam: Camera2D = null
 var died = false
-var init_seed_variation = 0.8
+var init_seed_variation = 0.5
 
 # damit das Modell nach einem Sprung sofort die nächste Platform anvisiert, muss
 # die vorherige geblacklisted werden.

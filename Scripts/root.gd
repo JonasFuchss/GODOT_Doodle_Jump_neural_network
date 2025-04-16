@@ -25,7 +25,7 @@ func _ready()-> void:
 	var y_player_pos = threshold
 	
 	for i in platformCount:
-		createPlatform(rand_x(), -(platformGap * randf_range(0.85, 1.0) * (i-1)))
+		createPlatform(rand_x(), -(platformGap * randf_range(0.9, 1.0) * (i-1)))
 		
 	# Die unterste Plattform muss unter dem Spieler sein
 	platforms.front().global_position.x = x_player_pos
@@ -88,11 +88,11 @@ func _on_nn_trainer_need_new_level(generation_number) -> void:
 	platforms.clear()
 
 	var x_player_pos = rand_x()
-	var y_player_pos = threshold-10
+	var y_player_pos = threshold
 	
 	# erstelle neue Platformen
 	for i in platformCount:
-		createPlatform(rand_x(), -(platformGap * randf_range(0.85, 1.0) * (i-1)))
+		createPlatform(rand_x(), -(platformGap * randf_range(0.9, 1.0) * (i-1)))
 		
 	# Die unterste Plattform muss unter dem Spieler sein
 	platforms.front().global_position.x = x_player_pos
