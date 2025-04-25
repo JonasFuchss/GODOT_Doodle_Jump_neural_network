@@ -22,7 +22,7 @@ var init_nodes: Dictionary = {
 	"hidden": [],
 	"output": []
 }
-var init_connections: Array[Genome_Connection] = []
+var init_connections: Dictionary = {}
 
 var highscore_label: Label
 var Doodle = preload("res://Scenes/doodle.tscn")
@@ -39,8 +39,8 @@ func _ready() -> void:
 	init_nodes["input"].append(Genome_Node.new(0, 0.0))
 	init_nodes["input"].append(Genome_Node.new(1, 0.0))
 	init_nodes["output"].append(Genome_Node.new(2, 0.0))
-	init_connections.append(Genome_Connection.new(0, 0, 2, randf()))
-	init_connections.append(Genome_Connection.new(1, 1, 2, randf()))
+	init_connections[0] = Genome_Connection.new(0, 1, randf())
+	init_connections[1] = Genome_Connection.new(1, 2, randf())
 
 
 func create_generation() -> void:
