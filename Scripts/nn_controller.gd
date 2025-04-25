@@ -3,14 +3,79 @@ extends Node2D
 var platforms = null
 var cam: Camera2D = null
 var died = false
-var init_seed_variation = 0.5
 
 # damit das Modell nach einem Sprung sofort die nächste Platform anvisiert, muss
 # die vorherige geblacklisted werden.
 var forbidden_platform: Object
 
+# direction as given by the nn. shall be between -1.0 and 1.0
+# Determines how much the nn "pushes" the joystick to left or right,
+# to control the doodle left/right-movement.
+var dir: float = 0.0
+
+var nodes: Array		## Liste mit allen Genome-Nodes (Neuronen) dieses Genoms
+var connections: Array	## Liste mit allen Genome-Connections zwischen den obengenannten Neuronen
+
+## Helfer-Klasse zur Abbildung von Nodes
+class Genome_Node:
+	var type: String	# Typ der Node. Darf nur 'input', 'hidden' oder 'output' sein.
+	var number: int		# Nummer der Node. In einem Genom einzigartig.
+	var bias: float		# Bias der Node.
+	
+	func _init(_type: String, _number: int, _bias: float):
+		type = _type
+		number = _number
+		bias = _bias
+
+	func set_bias(new_bias: float) -> void:
+		bias = new_bias
+	
+	func get_bias() -> float:
+		return bias
+	
+	func set_type(new_type: String) -> void:
+		type = new_type
+	
+	func get_type() -> String:
+		return type
+	
+	func set_number(new_number: int) -> void:
+		number = new_number
+	
+	func get_number() -> int:
+		return number
+
+## Helfer-Klasse zur Abbildung von Connections
+class Genome_Connection:
+	var origin: int		# Nummer der Ausgangs-Node
+	var target: int		# Nummer der Ziel-Node
+	var weight: float	# Gewicht der Verbindung. Geht von 0.0 (ausgeschaltet) bis 1.0
+
+	func _init(_origin: int, _target: int, _weight: float):
+		origin = _origin
+		target = _target
+		weight = _weight
+	
+	func set_weight(new_weight: float) -> void:
+		weight = new_weight
+	
+	func get_weight() -> float:
+		return weight
+	
+	func set_origin(new_origin: int) -> void:
+		origin = new_origin
+	
+	func get_origin() -> int:
+		return origin
+	
+	func set_target(new_target: int) -> void:
+		target = new_target
+	
+	func get_target() -> int:
+		return target
+
 signal send_direction(direction)
-signal send_seed(weights_in, biases_in, weights_out, biases_out)
+signal send_genome(nodes, connections)
 
 
 func _ready() -> void:
@@ -32,42 +97,12 @@ func get_vector_to_next_platform() -> Vector2:
 	return to_next
 
 
-# direction as given by the nn. shall be between -1.0 and 1.0
-# Determines how much the nn "pushes" the joystick to left or right,
-# to control the doodle left/right-movement.
-var dir: float = 0.0
-
-# number of input-layers (x_diff & y_diff), output-layers (v) and hidden-
-# layers with neurons for calculations via tanh.
-const INPUTS = 2
-const HIDDEN_LAYERS = 2
-const OUTPUTS = 1
-const LEARNING_RATE = 0.1
-
-## weights and biases for input -> hidden (initially small random values)
-var weights_in = 	[
-						[randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)],
-						[randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)]
-					]
-var biases_in = 	[
-						randf_range(-1.0, 1.0),
-						randf_range(-1.0, 1.0)
-					]
-
-## weights and biases for hidden -> output
-var weights_out = 	[
-						randf_range(-1.0, 1.0),
-						randf_range(-1.0, 1.0)
-					]
-var biases_out =	randf_range(-1.0, 1.0)
-
-
 func tanh(x) -> float:
 	"""
-	Returns the tanh-value of the given float.
-	Resulting value is between -1.0 and 1.0
-	Also called "Squashing function", as it "squashes" all huge (negative
-	or positive) inputs to (almost) -1 or 1.
+	Gibt den tanh-Wert der gegebenen Float-Zahl zurück.
+	Der resultierende Wert liegt zwischen -1.0 und 1.0
+	Auch als "Squashing-Funktion" bezeichnet, da sie alle sehr großen (negativen
+	oder positiven) Eingaben auf (fast) -1 oder 1 "zusammendrückt".
 	"""
 	return (exp(x) - exp(-x)) / (exp(x) + exp(-x))
 
@@ -87,103 +122,12 @@ func decide_dir(vector_to_next_platform: Vector2) -> float:
 	var distance_x = vector_to_next_platform.x
 	var distance_y = vector_to_next_platform.y
 	
-	# Hidden neuron 0:
-	var hidden_input_0 = (distance_x * weights_in[0][0]) + (distance_y * weights_in[1][0]) + biases_in[0]
-	
-	# Hidden neuron 1:
-	var hidden_input_1 = (distance_x * weights_in[0][1]) + (distance_y * weights_in[1][1]) + biases_in[1]
-	
-	# convert to -1 <-> 1 range:
-	var hidden_output_0 = tanh(hidden_input_0)
-	var hidden_output_1 = tanh(hidden_input_1)
-	
-	# output neuron:
-	var output_neuron_in = (hidden_output_0 * weights_out[0]) + (hidden_output_1 * weights_out[1]) + biases_out
-	var output_neuron_out = tanh(output_neuron_in)
-	
 	return output_neuron_out
 
 
-func lower_border(seed, variation) -> float:
-	return seed - (seed + 1) * variation
-
-
-func upper_border(seed, variation) -> float:
-	return seed + (1 - seed) * variation
-
-
-func _on_root_set_weights_and_biases(values, gencount) -> void:
-	var cur_seed_variation = init_seed_variation / gencount
-	
-	# Lasse die neuen Weights & Biases von dem vorherigen besten etwas abweichen,
-	# wenn es bereits eine Generation gab.
-	if gencount != 0:
-		values = [
-			[
-				[randf_range(
-					lower_border(values[0][0][0], cur_seed_variation),
-					upper_border(values[0][0][0], cur_seed_variation)
-				),
-				randf_range(
-					lower_border(values[0][0][1], cur_seed_variation),
-					upper_border(values[0][0][1], cur_seed_variation)
-				)],
-				[randf_range(
-					lower_border(values[0][1][0], cur_seed_variation),
-					upper_border(values[0][1][0], cur_seed_variation)
-				),
-				randf_range(
-					lower_border(values[0][1][1], cur_seed_variation),
-					upper_border(values[0][1][1], cur_seed_variation)
-				)]
-			],
-			[
-				randf_range(
-					lower_border(values[1][0], cur_seed_variation),
-					upper_border(values[1][0], cur_seed_variation)
-				),
-				randf_range(
-					lower_border(values[1][1], cur_seed_variation),
-					upper_border(values[1][1], cur_seed_variation)
-				)
-			],
-			[
-				randf_range(
-					lower_border(values[2][0], cur_seed_variation),
-					upper_border(values[2][0], cur_seed_variation)
-				),
-				randf_range(
-					lower_border(values[2][1], cur_seed_variation),
-					upper_border(values[2][1], cur_seed_variation)
-				)
-			],
-			randf_range(
-					lower_border(values[3], cur_seed_variation),
-					upper_border(values[3], cur_seed_variation)
-			)
-		]
-	else:
-		# Ist dies die erste Generation, verwende komplett zufällige Werte.
-		values = [
-			[
-				[randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)],
-				[randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)]
-			],
-			[
-				randf_range(-1.0, 1.0),
-				randf_range(-1.0, 1.0)
-			],
-			[
-				randf_range(-1.0, 1.0),
-				randf_range(-1.0, 1.0)
-			],
-			randf_range(-1.0, 1.0)
-		]
-	
-	weights_in	= values[0]
-	biases_in 	= values[1]
-	weights_out = values[2]
-	biases_out 	= values[3]
+func _on_root_set_weights_and_biases(nodes, connections) -> void:
+	self.nodes = nodes
+	self.connections = connections
 
 
 func _process(delta: float) -> void:
@@ -193,7 +137,7 @@ func _process(delta: float) -> void:
 	# Check, ob der Doodle sich unterhalb des Viewports befindet.
 	var cutoff: float = cam.position.y + get_viewport_rect().size.y / 2
 	if get_parent().position.y > cutoff and not died:
-		send_seed.emit(weights_in, biases_in, weights_out, biases_out)
+		send_genome.emit(nodes, connections)
 		died = true
 
 

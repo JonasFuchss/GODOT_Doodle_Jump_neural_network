@@ -72,9 +72,9 @@ func _on_nn_controller_send_direction(direction: float) -> void:
 	dir = direction
 
 
-func _on_nn_controller_send_seed(weights_in: Array, biases_in: Array, weights_out: Array, biases_out: float) -> void:
+func _on_nn_controller_send_genome(nodes: Array, connections: Array) -> void:
 	# wenn der controller seine Daten sendet, bedeutet das, dass der Doodle
 	# aus der Map gefallen ("gestorben") ist. Also Daten und Highscore an den
 	# Trainer weitergeben und Doodle-Instanz für's löschen queuen.
-	death_by_falling.emit(weights_in, biases_in, weights_out, biases_out, highestJump)
+	death_by_falling.emit(nodes, connections, highestJump)
 	queue_free()

@@ -16,7 +16,7 @@ var camera: Camera2D
 @onready var background: Sprite2D= $"Parallax2D/Sprite2D"
 
 signal level_built(x_spawn, y_spawn)
-signal root_set_weights_and_biases(values: Array, first_gen: bool, gencount: int)
+signal root_set_weights_and_biases(nodes: Array, connections: Array)
 
 func _ready()-> void:
 	camera = $Camera2D
@@ -45,7 +45,7 @@ func createPlatform(x, y) -> void:
 	platforms.append(inst)
 
 
-func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, values: Array, gencount: int):
+func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, nodes: Array, connections: Array):
 	var doodle: CharacterBody2D = Doodle.instantiate()
 	trainer.add_child(doodle)
 	doodle.translate(Vector2(x, y))
@@ -57,7 +57,7 @@ func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, value
 	
 	# Verbindung der SETTER-Funktion für den individuellen Controller
 	self.connect("root_set_weights_and_biases", doodle.get_node("nn_controller")._on_root_set_weights_and_biases)
-	root_set_weights_and_biases.emit(values, gencount)
+	root_set_weights_and_biases.emit(nodes, connections)
 	
 	camera.position.y = doodle.position.y - 30
 
