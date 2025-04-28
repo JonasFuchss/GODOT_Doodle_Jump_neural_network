@@ -45,7 +45,7 @@ func createPlatform(x, y) -> void:
 	platforms.append(inst)
 
 
-func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, nodes: Array, connections: Array):
+func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, gene):
 	var doodle: CharacterBody2D = Doodle.instantiate()
 	trainer.add_child(doodle)
 	doodle.translate(Vector2(x, y))
