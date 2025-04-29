@@ -20,7 +20,6 @@ signal send_genome(genome: Gene_Stuff.Genome)
 
 
 func _ready() -> void:
-	print("nn_controller ready")
 	platforms = get_node("/root/root/Platforms")
 	cam = get_node("/root/root/Camera2D")
 
@@ -39,15 +38,6 @@ func get_vector_to_next_platform() -> Vector2:
 	return to_next
 
 
-func tanh(x) -> float:
-	"""
-	Gibt den tanh-Wert der gegebenen Float-Zahl zurück.
-	Der resultierende Wert liegt zwischen -1.0 und 1.0
-	Auch als "Squashing-Funktion" bezeichnet, da sie alle sehr großen (negativen
-	oder positiven) Eingaben auf (fast) -1 oder 1 "zusammendrückt".
-	"""
-	return (exp(x) - exp(-x)) / (exp(x) + exp(-x))
-
 
 func decide_dir(vector_to_next_platform: Vector2) -> float:
 	"""
@@ -60,15 +50,15 @@ func decide_dir(vector_to_next_platform: Vector2) -> float:
 	+1 = voll nach rechts,
 	 0 = keine Richtungssteuerung des Netzes.
 	"""
-	
 	var distance_x = vector_to_next_platform.x
 	var distance_y = vector_to_next_platform.y
 	
-	return genome.feed_forward({"input_id_0": distance_x, "input_id_1": distance_y})[0]
+	return genome.feed_forward({0: distance_x, 1: distance_y})[0]
 
 
-func _on_root_set_gene(gene) -> void:
+func _on_root_set_gene(gene: Gene_Stuff.Genome) -> void:
 	self.genome = gene
+	print(str(gene.get_nodes()))
 
 
 func _process(delta: float) -> void:

@@ -45,10 +45,10 @@ signal need_new_level(generation)
 
 func _ready() -> void:
 	print("nn_trainer ready")
-	print_tree_pretty()
 	highscore_label = get_node("/root/root/Camera2D/Header/Highscore")
 
 func create_generation() -> void:
+	print("nn_trainer creating new generation")
 	# Zurücksetzen des generations-spezifischen mutations-trackers & Scores der letzten Runde
 	mutation_tracker.clear()
 	dead_scores_and_genomes.clear()
@@ -60,6 +60,9 @@ func create_generation() -> void:
 		# Anfängliche Genom-Struktur, in der ersten Generation bei allen gleich.
 		# Bei Erstellung der ersten Generation passieren erste Mutationen
 		if generation_count == 0:
+			var rand_weight_1 = randf()
+			randomize()
+			var rand_weight_2 = randf()
 			gene = Gene_Stuff.Genome.new(
 				{
 					"input": [Gene_Stuff.Genome_Node.new(0, 0.0), Gene_Stuff.Genome_Node.new(1, 0.0)],
@@ -67,8 +70,8 @@ func create_generation() -> void:
 					"output": [Gene_Stuff.Genome_Node.new(2, 0.0)]
 				},
 				{
-					0: Gene_Stuff.Genome_Connection.new(0, 1, randf()),
-					1: Gene_Stuff.Genome_Connection.new(1, 2, randf())
+					0: Gene_Stuff.Genome_Connection.new(0, 1, rand_weight_1),
+					1: Gene_Stuff.Genome_Connection.new(1, 2, rand_weight_1)
 				}
 			)
 			
@@ -123,6 +126,7 @@ func _on_root_level_built(x_coord: float, y_coord: float) -> void:
 func _on_doodle_death_by_falling(genome: Gene_Stuff.Genome, score: float) -> void:
 	current_pops -= 1
 	
+	print("doodle died")
 	# runde den Score auf einen Integer. Verhindert Rundungsfehler.
 	var rounded_score = roundf(score)
 	

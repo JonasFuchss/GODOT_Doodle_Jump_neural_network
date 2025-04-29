@@ -24,8 +24,6 @@ func _ready()-> void:
 	var x_player_pos = rand_x()
 	var y_player_pos = threshold
 	
-	print("erstelle Plattformen")
-	
 	for i in platformCount:
 		createPlatform(rand_x(), -(platformGap * randf_range(0.9, 1.0) * (i-1)))
 		
@@ -58,7 +56,7 @@ func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, gene:
 	doodle.connect("death_by_falling", get_node("nn_trainer")._on_doodle_death_by_falling)
 	
 	# Verbindung der SETTER-Funktion für den individuellen Controller
-	self.connect("root_set_gene", doodle.get_node("nn_controller")._on_root_set_weights_and_biases)
+	self.connect("root_set_gene", doodle.get_node("nn_controller")._on_root_set_gene)
 	root_set_gene.emit(gene)
 	
 	camera.position.y = doodle.position.y - 30

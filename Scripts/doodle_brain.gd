@@ -17,12 +17,11 @@ var label: Label
 var camera: Camera2D
 
 signal new_highest_jump(height_y)
-signal death_by_falling(weights_in: Array, biases_in: Array, weights_out: Array, biases_out: float, score: float)
+signal death_by_falling(genome: Gene_Stuff.Genome, score: float)
 signal touched_platform(platform: Object)
 
 
 func _ready() -> void:
-	print("doodle brain ready")
 	label = $Label
 	camera = get_parent().get_node("/root/root/Camera2D")
 

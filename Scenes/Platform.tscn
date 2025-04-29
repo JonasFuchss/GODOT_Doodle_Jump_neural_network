@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://djrm67x3l60nv"]
 
 [ext_resource type="Texture2D" uid="uid://b820g4snabcf0" path="res://assets/game-tiles.png" id="1"]
-[ext_resource type="Script" path="res://Scenes/platform.gd" id="1_1mg4x"]
+[ext_resource type="Script" path="res://Scripts/platform.gd" id="1_1mg4x"]
 
 [sub_resource type="RectangleShape2D" id="1"]
 size = Vector2(56, 14)

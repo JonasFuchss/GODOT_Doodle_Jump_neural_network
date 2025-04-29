@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=3 uid="uid://c7bmoki1sbp2n"]
+[gd_scene load_steps=8 format=3 uid="uid://c7bmoki1sbp2n"]
 
-[ext_resource type="Script" path="res://Scenes/Genome.gd" id="1_cxboc"]
+[ext_resource type="Script" path="res://Scripts/root.gd" id="1_wjoyd"]
 [ext_resource type="Texture2D" uid="uid://dglm40wl41pkb" path="res://assets/bck.png" id="3_pe3wc"]
+[ext_resource type="Script" path="res://Scenes/Genome.gd" id="4_q1gak"]
 [ext_resource type="Script" path="res://Scripts/nn_trainer.gd" id="5_bf6py"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_363au"]
@@ -15,7 +16,7 @@ font_color = Color(0, 0, 0, 1)
 font_color = Color(0, 0, 0, 1)
 
 [node name="root" type="Node2D"]
-script = ExtResource("1_cxboc")
+script = ExtResource("1_wjoyd")
 
 [node name="Platforms" type="Node2D" parent="."]
 
@@ -60,3 +61,10 @@ offset_right = 305.0
 offset_bottom = 47.0
 text = "0"
 label_settings = SubResource("LabelSettings_hetm1")
+
+[node name="Genome_Class" type="Node" parent="."]
+script = ExtResource("4_q1gak")
+
+[connection signal="level_built" from="." to="nn_trainer" method="_on_root_level_built"]
+[connection signal="create_doodle" from="nn_trainer" to="." method="_on_nn_trainer_create_doodle"]
+[connection signal="need_new_level" from="nn_trainer" to="." method="_on_nn_trainer_need_new_level"]
