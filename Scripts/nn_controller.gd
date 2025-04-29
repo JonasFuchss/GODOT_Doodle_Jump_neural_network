@@ -58,7 +58,6 @@ func decide_dir(vector_to_next_platform: Vector2) -> float:
 
 func _on_root_set_gene(gene: Gene_Stuff.Genome) -> void:
 	self.genome = gene
-	print(str(gene.get_nodes()))
 
 
 func _process(delta: float) -> void:

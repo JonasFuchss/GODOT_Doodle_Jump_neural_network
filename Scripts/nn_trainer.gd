@@ -1,7 +1,7 @@
 extends Node
 
 var generation_count: int = 0
-var pop_count: int = 1
+var pop_count: int = 5
 var current_pops: int = 0
 var spawn_coord: Array = []
 
@@ -48,10 +48,8 @@ func _ready() -> void:
 	highscore_label = get_node("/root/root/Camera2D/Header/Highscore")
 
 func create_generation() -> void:
-	print("nn_trainer creating new generation")
 	# Zurücksetzen des generations-spezifischen mutations-trackers & Scores der letzten Runde
 	mutation_tracker.clear()
-	dead_scores_and_genomes.clear()
 	
 	for pop in pop_count:
 		var gene: Gene_Stuff.Genome
@@ -60,20 +58,22 @@ func create_generation() -> void:
 		# Anfängliche Genom-Struktur, in der ersten Generation bei allen gleich.
 		# Bei Erstellung der ersten Generation passieren erste Mutationen
 		if generation_count == 0:
-			var rand_weight_1 = randf()
-			randomize()
-			var rand_weight_2 = randf()
 			gene = Gene_Stuff.Genome.new(
 				{
 					"input": [Gene_Stuff.Genome_Node.new(0, 0.0), Gene_Stuff.Genome_Node.new(1, 0.0)],
-					"hidden": [],
-					"output": [Gene_Stuff.Genome_Node.new(2, 0.0)]
+					"hidden": [Gene_Stuff.Genome_Node.new(2, 0.0)],
+					"output": [Gene_Stuff.Genome_Node.new(3, 0.0)]
 				},
 				{
-					0: Gene_Stuff.Genome_Connection.new(0, 1, rand_weight_1),
-					1: Gene_Stuff.Genome_Connection.new(1, 2, rand_weight_1)
+					0: Gene_Stuff.Genome_Connection.new(0, 2, 1.0),
+					1: Gene_Stuff.Genome_Connection.new(1, 2, 1.0),
+					2: Gene_Stuff.Genome_Connection.new(2, 3, 1.0)
 				}
 			)
+			
+			gene.randomize_weights_and_biases()
+			print(gene.get_connections()[0].get_weight())
+			print(gene.get_connections()[1].get_weight())
 			
 			var occured_mutation = gene.mutate()
 			if occured_mutation["type"] != "none":
@@ -115,6 +115,7 @@ func create_generation() -> void:
 			print("Mutation: " + str(occured_mutation))
 		
 		current_pops += 1
+		dead_scores_and_genomes.clear()
 		create_doodle.emit(Doodle, spawn_coord[0], spawn_coord[1], gene)
 
 
@@ -126,7 +127,6 @@ func _on_root_level_built(x_coord: float, y_coord: float) -> void:
 func _on_doodle_death_by_falling(genome: Gene_Stuff.Genome, score: float) -> void:
 	current_pops -= 1
 	
-	print("doodle died")
 	# runde den Score auf einen Integer. Verhindert Rundungsfehler.
 	var rounded_score = roundf(score)
 	
