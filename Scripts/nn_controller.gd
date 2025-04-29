@@ -13,11 +13,14 @@ var forbidden_platform: Object
 # to control the doodle left/right-movement.
 var dir: float = 0.0
 
+var genome: Gene_Stuff.Genome
+
 signal send_direction(direction: float)
 signal send_genome(genome: Gene_Stuff.Genome)
 
 
 func _ready() -> void:
+	print("nn_controller ready")
 	platforms = get_node("/root/root/Platforms")
 	cam = get_node("/root/root/Camera2D")
 
@@ -61,12 +64,11 @@ func decide_dir(vector_to_next_platform: Vector2) -> float:
 	var distance_x = vector_to_next_platform.x
 	var distance_y = vector_to_next_platform.y
 	
-	return output_neuron_out
+	return genome.feed_forward({"input_id_0": distance_x, "input_id_1": distance_y})[0]
 
 
-func _on_root_set_weights_and_biases(nodes, connections) -> void:
-	self.nodes = nodes
-	self.connections = connections
+func _on_root_set_gene(gene) -> void:
+	self.genome = gene
 
 
 func _process(delta: float) -> void:
@@ -76,7 +78,7 @@ func _process(delta: float) -> void:
 	# Check, ob der Doodle sich unterhalb des Viewports befindet.
 	var cutoff: float = cam.position.y + get_viewport_rect().size.y / 2
 	if get_parent().position.y > cutoff and not died:
-		send_genome.emit(nodes, connections)
+		send_genome.emit(genome)
 		died = true
 
 

@@ -22,6 +22,7 @@ signal touched_platform(platform: Object)
 
 
 func _ready() -> void:
+	print("doodle brain ready")
 	label = $Label
 	camera = get_parent().get_node("/root/root/Camera2D")
 
@@ -72,9 +73,9 @@ func _on_nn_controller_send_direction(direction: float) -> void:
 	dir = direction
 
 
-func _on_nn_controller_send_genome(nodes: Array, connections: Array) -> void:
+func _on_nn_controller_send_genome(genome: Gene_Stuff.Genome) -> void:
 	# wenn der controller seine Daten sendet, bedeutet das, dass der Doodle
 	# aus der Map gefallen ("gestorben") ist. Also Daten und Highscore an den
 	# Trainer weitergeben und Doodle-Instanz für's löschen queuen.
-	death_by_falling.emit(nodes, connections, highestJump)
+	death_by_falling.emit(genome, highestJump)
 	queue_free()
