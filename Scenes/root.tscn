@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://c7bmoki1sbp2n"]
 
-[ext_resource type="Script" path="res://Scripts/Genome.gd" id="1_f4264"]
+[ext_resource type="Script" path="res://Scenes/Genome.gd" id="1_cxboc"]
 [ext_resource type="Texture2D" uid="uid://dglm40wl41pkb" path="res://assets/bck.png" id="3_pe3wc"]
 [ext_resource type="Script" path="res://Scripts/nn_trainer.gd" id="5_bf6py"]
 
@@ -15,7 +15,7 @@ font_color = Color(0, 0, 0, 1)
 font_color = Color(0, 0, 0, 1)
 
 [node name="root" type="Node2D"]
-script = ExtResource("1_f4264")
+script = ExtResource("1_cxboc")
 
 [node name="Platforms" type="Node2D" parent="."]
 

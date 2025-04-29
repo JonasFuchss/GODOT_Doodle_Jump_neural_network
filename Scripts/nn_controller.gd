@@ -13,69 +13,8 @@ var forbidden_platform: Object
 # to control the doodle left/right-movement.
 var dir: float = 0.0
 
-var nodes: Array		## Liste mit allen Genome-Nodes (Neuronen) dieses Genoms
-var connections: Array	## Liste mit allen Genome-Connections zwischen den obengenannten Neuronen
-
-## Helfer-Klasse zur Abbildung von Nodes
-class Genome_Node:
-	var type: String	# Typ der Node. Darf nur 'input', 'hidden' oder 'output' sein.
-	var number: int		# Nummer der Node. In einem Genom einzigartig.
-	var bias: float		# Bias der Node.
-	
-	func _init(_type: String, _number: int, _bias: float):
-		type = _type
-		number = _number
-		bias = _bias
-
-	func set_bias(new_bias: float) -> void:
-		bias = new_bias
-	
-	func get_bias() -> float:
-		return bias
-	
-	func set_type(new_type: String) -> void:
-		type = new_type
-	
-	func get_type() -> String:
-		return type
-	
-	func set_number(new_number: int) -> void:
-		number = new_number
-	
-	func get_number() -> int:
-		return number
-
-## Helfer-Klasse zur Abbildung von Connections
-class Genome_Connection:
-	var origin: int		# Nummer der Ausgangs-Node
-	var target: int		# Nummer der Ziel-Node
-	var weight: float	# Gewicht der Verbindung. Geht von 0.0 (ausgeschaltet) bis 1.0
-
-	func _init(_origin: int, _target: int, _weight: float):
-		origin = _origin
-		target = _target
-		weight = _weight
-	
-	func set_weight(new_weight: float) -> void:
-		weight = new_weight
-	
-	func get_weight() -> float:
-		return weight
-	
-	func set_origin(new_origin: int) -> void:
-		origin = new_origin
-	
-	func get_origin() -> int:
-		return origin
-	
-	func set_target(new_target: int) -> void:
-		target = new_target
-	
-	func get_target() -> int:
-		return target
-
-signal send_direction(direction)
-signal send_genome(nodes, connections)
+signal send_direction(direction: float)
+signal send_genome(genome: Gene_Stuff.Genome)
 
 
 func _ready() -> void:

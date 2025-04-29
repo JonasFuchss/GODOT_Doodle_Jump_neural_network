@@ -34,22 +34,22 @@ func create_generation() -> void:
 	mutation_tracker.clear()
 	
 	for pop in pop_count:
-		var gene: Genome
+		var gene: Gene_Stuff.Genome
 		
 		# Wenn Gen 0, erstelle Gene mit Initialwerten
 		# Anfängliche Genom-Struktur, in der ersten Generation bei allen gleich.
 		# Bei Erstellung der ersten Generation passieren erste Mutationen
 		if generation_count == 0:
 			print("erste Generation, erstelle frische Gene")
-			gene = Genome.new(
+			gene = Gene_Stuff.Genome.new(
 				{
-					"input": [Genome.Genome_Node.new(0, 0.0), Genome.Genome_Node.new(1, 0.0)],
+					"input": [Gene_Stuff.Genome_Node.new(0, 0.0), Gene_Stuff.Genome_Node.new(1, 0.0)],
 					"hidden": [],
-					"output": [Genome.Genome_Node.new(2, 0.0)]
+					"output": [Gene_Stuff.Genome_Node.new(2, 0.0)]
 				},
 				{
-					0: Genome.Genome_Connection.new(0, 1, init_weights),
-					1: Genome.Genome_Connection.new(1, 2, init_weights)
+					0: Gene_Stuff.Genome_Connection.new(0, 1, init_weights),
+					1: Gene_Stuff.Genome_Connection.new(1, 2, init_weights)
 				}
 			)
 			gene.mutate()
