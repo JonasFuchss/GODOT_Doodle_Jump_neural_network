@@ -115,8 +115,8 @@ func create_generation() -> void:
 			print("Mutation: " + str(occured_mutation))
 		
 		current_pops += 1
-		dead_scores_and_genomes.clear()
 		create_doodle.emit(Doodle, spawn_coord[0], spawn_coord[1], gene)
+	dead_scores_and_genomes.clear()
 
 
 func _on_root_level_built(x_coord: float, y_coord: float) -> void:
