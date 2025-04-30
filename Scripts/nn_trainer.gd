@@ -39,7 +39,7 @@ var highscore_label: Label
 var Doodle = preload("res://Scenes/doodle.tscn")
 
 
-signal create_doodle(doodle, x, y, Genome)
+signal create_doodle(doodle, x, y, gene: Genome, number: int)
 signal need_new_level(generation)
 
 
@@ -52,22 +52,22 @@ func create_generation() -> void:
 	mutation_tracker.clear()
 	
 	for pop in pop_count:
-		var gene: Gene_Stuff.Genome
+		var gene: Genome
 		
 		# Wenn Gen 0, erstelle Gene mit Initialwerten
 		# Anfängliche Genom-Struktur, in der ersten Generation bei allen gleich.
 		# Bei Erstellung der ersten Generation passieren erste Mutationen
 		if generation_count == 0:
-			gene = Gene_Stuff.Genome.new(
+			gene = Genome.new(
 				{
-					"input": [Gene_Stuff.Genome_Node.new(0, 0.0), Gene_Stuff.Genome_Node.new(1, 0.0)],
-					"hidden": [Gene_Stuff.Genome_Node.new(2, 0.0)],
-					"output": [Gene_Stuff.Genome_Node.new(3, 0.0)]
+					"input": [Genome_Node.new(0, 0.0), Genome_Node.new(1, 0.0)],
+					"hidden": [Genome_Node.new(2, 0.0)],
+					"output": [Genome_Node.new(3, 0.0)]
 				},
 				{
-					0: Gene_Stuff.Genome_Connection.new(0, 2, 1.0),
-					1: Gene_Stuff.Genome_Connection.new(1, 2, 1.0),
-					2: Gene_Stuff.Genome_Connection.new(2, 3, 1.0)
+					0: Genome_Connection.new(0, 2, 1.0),
+					1: Genome_Connection.new(1, 2, 1.0),
+					2: Genome_Connection.new(2, 3, 1.0)
 				}
 			)
 			
@@ -96,7 +96,7 @@ func create_generation() -> void:
 			# TODO Bilde Spezies anhand von der Ähnlichkeit der Innovations-Folge der
 			# Genome und lasse die stärksten Genome in jeder Spezies fortpflanzen.
 			var key = dead_scores_and_genomes.keys()[0] # FÜR DEBUG MIT EINZELNER POP
-			gene = Gene_Stuff.Genome.new(
+			gene = Genome.new(
 				dead_scores_and_genomes[key].get_nodes(),
 				dead_scores_and_genomes[key].get_connections()
 			)
@@ -114,8 +114,8 @@ func create_generation() -> void:
 			
 			print("Mutation: " + str(occured_mutation))
 		
+		create_doodle.emit(Doodle, spawn_coord[0], spawn_coord[1], gene, current_pops)
 		current_pops += 1
-		create_doodle.emit(Doodle, spawn_coord[0], spawn_coord[1], gene)
 	dead_scores_and_genomes.clear()
 
 
@@ -124,7 +124,7 @@ func _on_root_level_built(x_coord: float, y_coord: float) -> void:
 	create_generation()
 
 
-func _on_doodle_death_by_falling(genome: Gene_Stuff.Genome, score: float) -> void:
+func _on_doodle_death_by_falling(genome: Genome, score: float) -> void:
 	current_pops -= 1
 	
 	# runde den Score auf einen Integer. Verhindert Rundungsfehler.

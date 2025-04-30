@@ -3,6 +3,8 @@ extends Node2D
 var platforms = null
 var cam: Camera2D = null
 var died = false
+# Doodles Nummer. Gebraucht, damit set_gene nicht die Gene aller controller überschreibt
+var number: int
 
 # damit das Modell nach einem Sprung sofort die nächste Platform anvisiert, muss
 # die vorherige geblacklisted werden.
@@ -13,10 +15,10 @@ var forbidden_platform: Object
 # to control the doodle left/right-movement.
 var dir: float = 0.0
 
-var genome: Gene_Stuff.Genome
+var genome: Genome
 
 signal send_direction(direction: float)
-signal send_genome(genome: Gene_Stuff.Genome)
+signal send_genome(genome: Genome)
 
 
 func _ready() -> void:
@@ -53,11 +55,12 @@ func decide_dir(vector_to_next_platform: Vector2) -> float:
 	var distance_x = vector_to_next_platform.x
 	var distance_y = vector_to_next_platform.y
 	
-	return genome.feed_forward({0: distance_x, 1: distance_y})[0]
+	return self.genome.feed_forward({0: distance_x, 1: distance_y})[0]
 
 
-func _on_root_set_gene(gene: Gene_Stuff.Genome) -> void:
-	self.genome = gene
+func _on_root_set_gene(gene: Genome, target_number: int) -> void:
+	if self.number == target_number:
+		self.genome = gene
 
 
 func _process(delta: float) -> void:

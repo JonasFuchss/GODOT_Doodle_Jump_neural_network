@@ -17,7 +17,7 @@ var label: Label
 var camera: Camera2D
 
 signal new_highest_jump(height_y)
-signal death_by_falling(genome: Gene_Stuff.Genome, score: float)
+signal death_by_falling(genome: Genome, score: float)
 signal touched_platform(platform: Object)
 
 
@@ -72,7 +72,7 @@ func _on_nn_controller_send_direction(direction: float) -> void:
 	dir = direction
 
 
-func _on_nn_controller_send_genome(genome: Gene_Stuff.Genome) -> void:
+func _on_nn_controller_send_genome(genome: Genome) -> void:
 	# wenn der controller seine Daten sendet, bedeutet das, dass der Doodle
 	# aus der Map gefallen ("gestorben") ist. Also Daten und Highscore an den
 	# Trainer weitergeben und Doodle-Instanz für's löschen queuen.

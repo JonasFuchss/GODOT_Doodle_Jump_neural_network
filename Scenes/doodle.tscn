@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://Scripts/doodle_brain.gd" id="1_si4gl"]
 [ext_resource type="Texture2D" uid="uid://4a0ry5v0p7l1" path="res://assets/blue-lik-right.png" id="2_ibcvm"]
-[ext_resource type="PackedScene" uid="uid://cagdwjihydvqu" path="res://Scenes/nn_controller.tscn" id="3_lgcr8"]
+[ext_resource type="Script" path="res://Scripts/nn_controller.gd" id="3_ruwur"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_j2r31"]
 radius = 16.0
@@ -22,8 +22,6 @@ shape = SubResource("CapsuleShape2D_j2r31")
 position = Vector2(-1.90735e-06, 4.76837e-07)
 texture = ExtResource("2_ibcvm")
 
-[node name="nn_controller" parent="." instance=ExtResource("3_lgcr8")]
-
 [node name="Label" type="Label" parent="."]
 offset_left = 21.0
 offset_top = -33.0
@@ -31,6 +29,8 @@ offset_right = 61.0
 offset_bottom = -10.0
 label_settings = SubResource("LabelSettings_kt8r7")
 
-[connection signal="touched_platform" from="." to="nn_controller" method="_on_doodle_touched_platform"]
+[node name="nn_controller" type="Node2D" parent="."]
+script = ExtResource("3_ruwur")
+
 [connection signal="send_direction" from="nn_controller" to="." method="_on_nn_controller_send_direction"]
 [connection signal="send_genome" from="nn_controller" to="." method="_on_nn_controller_send_genome"]
