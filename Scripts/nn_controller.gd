@@ -58,10 +58,6 @@ func decide_dir(vector_to_next_platform: Vector2) -> float:
 	return self.genome.feed_forward({0: distance_x, 1: distance_y})[0]
 
 
-func _on_root_set_gene(gene: Genome, target_number: int) -> void:
-	if self.number == target_number:
-		self.genome = gene
-
 
 func _process(delta: float) -> void:
 	dir = decide_dir(get_vector_to_next_platform())

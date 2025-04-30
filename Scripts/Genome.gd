@@ -2,7 +2,7 @@ class_name Genome extends Node
 
 
 # Alle Mutationen, welche dieses Netz im Laufe seiner Lebenszeit bisher
-# durchgemacht hat. Die Keys ist die eindeutige Innovationsnummer der Mutation,
+# durchgemacht hat. Der Key ist die eindeutige Innovationsnummer der Mutation,
 # die Values der Inhalt der Mutation (wie zurückgegeben durch mutate())
 var mutations: Dictionary = {}
 """
@@ -79,6 +79,14 @@ func _init(_nodes: Dictionary, _connections: Dictionary):
 	connection_number = _connections.size()
 
 
+func clone() -> Genome:
+	"""Gibt eine Kopie des aktuellen Genoms zurück."""
+	var new_genome = Genome.new(self.nodes, self.connections)
+	new_genome.mutations = self.mutations
+	new_genome.missing_connections = self.missing_connections
+	return new_genome
+
+
 func add_node(type: String, bias: float) -> int:
 	"""Erstellt eine neue Node mit der fortlaufenden, neuen ID und gibt die ID zurück"""
 	var node = Genome_Node.new(node_number, bias)
@@ -130,7 +138,6 @@ func remove_connection(connection_id: int) -> Array:
 	missing_connections.append([con.get_origin(), con.get_target()])
 	connections.erase(connection_id)
 	return [con.get_origin(), con.get_target()]
-	
 
 func get_node_ids(type: String = "", all: bool = true) -> Array:
 	"""gibt ein Array mit allen Node-IDs des gegebenen Typs zurück.
@@ -191,90 +198,94 @@ func mutate() -> Dictionary:
 			"target_node": ...
 		}
 	"""
+		
+	var mutation_type = randf()
+	# Mutation A: Veränderung des Gewichtes (+-0.3) einer zufälligen Verbindung (30%)
+	# Diese Mutation wird NICHT getrackt, da sie häufig passiert
+	# und nicht strukturell ist.
+	if mutation_type < 0.3:
+		var all_ids: Array = connections.keys()
+		var chosen_id: int = all_ids.pick_random()
+		var con: Genome_Connection = connections[chosen_id]
+		con.set_weight(activation(con.get_weight() + randf_range(-0.3, 0.3)))
+		print("Weight von Con " + str(chosen_id) + " verändert auf " + str(con.get_weight()))
 	
-	# Base-Chance, dass etwas mutiert:
-	var mutation_chance: float = 0.5
-	if randf() > mutation_chance:
-		
-		print(missing_connections)
-		
-		var mutation_type = randf()
-		
-		# Mutation A: Veränderung des Gewichtes (+-0.3) einer zufälligen Verbindung (30%)
-		# Diese Mutation wird NICHT getrackt, da sie häufig passiert
-		# und nicht strukturell ist.
-		if mutation_type < 0.3:
-			var all_ids: Array = connections.keys()
-			var chosen_id: int = all_ids.pick_random()
-			var con: Genome_Connection = connections[chosen_id]
-			con.set_weight(activation(con.get_weight() + randf_range(-0.3, 0.3)))
-			print("Weight von Con " + str(chosen_id) + " verändert auf " + str(con.get_weight()))
-		
-		# Mutation B: Veränderung des Bias (+-0.3) einer zufälligen Node (30%)
-		# Diese Mutation wird NICHT getrackt, da sie häufig passiert
-		# und nicht strukturell ist.
-		if mutation_type >= 0.3 and mutation_type < 0.6:
-			var all_ids = get_node_ids()
-			var chosen_id: int = all_ids.pick_random()
-			var node: Genome_Node = get_node_by_id(chosen_id)
-			node.set_bias(activation(node.get_bias() + randf_range(-0.3, 0.3)))
-			print("Bias von Node " + str(chosen_id) + " verändert auf " + str(node.get_bias()))
-		
-		# Mutation C: Einfügen einer neuen Node anstelle einer bestehenden Verbindung (10%)
-		# Dies kappt daher natürlich die bestehende Verbindung
-		# zB 		A ------> B
-		# wird zu
-		# 	 		A -> C -> B
-		if mutation_type >= 0.6 and mutation_type < 0.7:
-			var all_ids: Array = connections.keys()
-			var chosen_id: int = all_ids.pick_random()
-			var removed_con: Genome_Connection = connections[chosen_id]
-			var origin_node_id: int = removed_con.get_origin()
-			var target_node_id: int = removed_con.get_target()
-			remove_connection(chosen_id)
-			var created_node_id: int = add_node("hidden", randf_range(-1.0, 1.0))
-			add_connection(origin_node_id, created_node_id, randf())
-			add_connection(created_node_id, target_node_id, randf())
-			occured_mutation = {
-				"type": "add_node",
-				"origin_node": origin_node_id,
-				"node_id": created_node_id,
-				"target_node": target_node_id
-			}
-		
-		# Mutation D: Hinzufügen einer neuen Connection zwischen zwei zufälligen nodes, die
-		# noch keine bestehende Connection haben (15%)
-		if mutation_type >= 0.7 and mutation_type < 0.85 and not missing_connections.is_empty():
-			var pair: Array = missing_connections.pick_random()
-			add_connection(pair[0], pair[1], randf())
-			occured_mutation = {
-				"type": "add_connection",
-				"origin_node": pair[0],
-				"target_node": pair[1]
-			}
-		
-		# Mutation E: Entfernen einer bestehenden Connection (falls es eine gibt) (05%)
-		if mutation_type >= 0.85 and mutation_type < 0.9 and connections.keys().size() > 0:
-			var ids = connections.keys()
-			var id_to_delete = ids.pick_random()
-			var orig_and_target: Array = remove_connection(id_to_delete)
-			occured_mutation = {
-				"type": "delete_connection",
-				"origin_node": orig_and_target[0],
-				"target_node": orig_and_target[1]
-			}
-		
-		# Mutation F: Entfernen einer hidden-Node und aller damit (10%) 
-		# verbundenen Connections - nur möglich, falls mehr als 1 hidden vorhanden
-		if mutation_type >= 0.9 and nodes["hidden"].size() > 1:
-			var ids = get_node_ids("hidden", false)
-			var id_to_delete = ids.pick_random()
-			remove_node(id_to_delete)
-			occured_mutation = {
-				"type": "delete_hidden_node",
-				"node_id": id_to_delete,
-			}
-		
+	# Mutation B: Veränderung des Bias (+-0.3) einer zufälligen Node (30%)
+	# Diese Mutation wird NICHT getrackt, da sie häufig passiert
+	# und nicht strukturell ist.
+	if mutation_type >= 0.3 and mutation_type < 0.6:
+		var all_ids = get_node_ids()
+		var chosen_id: int = all_ids.pick_random()
+		var node: Genome_Node = get_node_by_id(chosen_id)
+		node.set_bias(activation(node.get_bias() + randf_range(-0.3, 0.3)))
+		print("Bias von Node " + str(chosen_id) + " verändert auf " + str(node.get_bias()))
+	
+	# Mutation C: Einfügen einer neuen Node anstelle einer bestehenden Verbindung (10%)
+	# Dies kappt daher natürlich die bestehende Verbindung
+	# zB 		A ------> B
+	# wird zu
+	# 	 		A -> C -> B
+	if mutation_type >= 0.6 and mutation_type < 0.7:
+		var all_ids: Array = connections.keys()
+		var chosen_id: int = all_ids.pick_random()
+		var removed_con: Genome_Connection = connections[chosen_id]
+		var origin_node_id: int = removed_con.get_origin()
+		var target_node_id: int = removed_con.get_target()
+		var old_weight: float = removed_con.get_weight()
+		remove_connection(chosen_id)
+		var created_node_id: int = add_node("hidden", randf_range(-1.0, 1.0))
+		add_connection(origin_node_id, created_node_id, 1.0)
+		add_connection(created_node_id, target_node_id, old_weight)
+		# Alle noch nicht bestehenden Connections die durch diese Node poten-
+		# tiell entstehen können, müssen auch hinzugefügt werden:
+		var m_con = []
+		for category in nodes.keys():
+			for node:Genome_Node in nodes[category]:
+				var id = node.get_number()
+				if id != origin_node_id and id != target_node_id and id != created_node_id:
+					m_con.append([id, created_node_id])
+		missing_connections.append(m_con)
+		occured_mutation = {
+			"type": "add_node",
+			"origin_node": origin_node_id,
+			"node_id": created_node_id,
+			"target_node": target_node_id
+		}
+	
+	# Mutation D: Hinzufügen einer neuen Connection zwischen zwei zufälligen nodes, die
+	# noch keine bestehende Connection haben (15%)
+	if mutation_type >= 0.7 and mutation_type < 0.85 and not missing_connections.is_empty():
+		var pair: Array = missing_connections.pick_random()
+		add_connection(pair[0], pair[1], randf())
+		occured_mutation = {
+			"type": "add_connection",
+			"origin_node": pair[0],
+			"target_node": pair[1]
+		}
+	
+	# Mutation E: Entfernen einer bestehenden Connection (falls es eine gibt) (05%)
+	if mutation_type >= 0.85 and mutation_type < 0.9 and connections.keys().size() > 0:
+		var ids = connections.keys()
+		var id_to_delete = ids.pick_random()
+		var orig_and_target: Array = remove_connection(id_to_delete)
+		occured_mutation = {
+			"type": "delete_connection",
+			"origin_node": orig_and_target[0],
+			"target_node": orig_and_target[1]
+		}
+	
+	# Mutation F: Entfernen einer hidden-Node und aller damit (10%) 
+	# verbundenen Connections - nur möglich, falls mehr als 1 hidden vorhanden
+	if mutation_type >= 0.9 and nodes["hidden"].size() > 1:
+		var ids = get_node_ids("hidden", false)
+		var id_to_delete = ids.pick_random()
+		remove_node(id_to_delete)
+		occured_mutation = {
+			"type": "delete_hidden_node",
+			"node_id": id_to_delete,
+		}
+	
+	print(missing_connections)
 	return occured_mutation
 
 

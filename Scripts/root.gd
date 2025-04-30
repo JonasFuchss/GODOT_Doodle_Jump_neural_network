@@ -16,7 +16,6 @@ var camera: Camera2D
 @onready var background: Sprite2D= $"Parallax2D/Sprite2D"
 
 signal level_built(x_spawn, y_spawn)
-signal root_set_gene(gene: Genome, number: int)
 
 func _ready()-> void:
 	camera = $Camera2D
@@ -45,9 +44,9 @@ func createPlatform(x, y) -> void:
 	platforms.append(inst)
 
 
-func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, gene: Genome, number: int):
+func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, gene: Genome):
 	var doodle: CharacterBody2D = Doodle.instantiate()
-	doodle.get_node("nn_controller").number = number
+	doodle.get_node("nn_controller").genome = gene
 	trainer.add_child(doodle)
 	doodle.translate(Vector2(x, y))
 	doodle.add_to_group("doodles")
@@ -55,11 +54,6 @@ func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, gene:
 	
 	# Verbinde auch das Death-Signal des Doodles mit dem Trainer:
 	doodle.connect("death_by_falling", get_node("nn_trainer")._on_doodle_death_by_falling)
-	
-	# Verbindung der SETTER-Funktion für den individuellen Controller
-	var con = is_connected("root_set_gene", doodle.get_node("nn_controller")._on_root_set_gene)
-	self.connect("root_set_gene", doodle.get_node("nn_controller")._on_root_set_gene)
-	root_set_gene.emit(gene, number)
 	
 	camera.position.y = doodle.position.y - 30
 

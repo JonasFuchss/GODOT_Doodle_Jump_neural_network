@@ -1,7 +1,7 @@
 extends Node
 
 var generation_count: int = 0
-var pop_count: int = 5
+var pop_count: int = 1
 var current_pops: int = 0
 var spawn_coord: Array = []
 
@@ -10,11 +10,19 @@ var this_gen_record_height: float = 1
 
 # Trackt innerhalb einer Generation den Score und das Genom aller gestorbenen
 # Doodles. Wird beim Erstellen einer neuen Gen zurückgesetzt.
-var dead_scores_and_genomes: Dictionary = {}
+var dead_scores_and_genomes: Array[Dictionary] = []
+"""
+Struktur: Liste mit Dictionaries, welche Score und Genom beinhalten:
+	dead_scores_and_genomes = [
+		{"score": 244, "genome": >genome< },
+		{"score": 41, "genome": >genome< },
+		{...}
+	]
+"""
 
 # Trackt die Zahl der Mutationen generationsübergreifend.
 var innovation_counter: int = 0
-# Trackt Mutationen für jede Generation einzeln. Mutationen, welche innerhalb
+# Trackt strukturelle Mutationen für jede Generation einzeln. Mutationen, welche innerhalb
 # einer Generation identisch sind (zB 02 -> 04 splittet in 02 -> 05 -> 04) wird
 # dieser die selbe innovations-Nummer zugeordnet.
 var mutation_tracker: Dictionary = {}
@@ -61,19 +69,18 @@ func create_generation() -> void:
 			gene = Genome.new(
 				{
 					"input": [Genome_Node.new(0, 0.0), Genome_Node.new(1, 0.0)],
-					"hidden": [Genome_Node.new(2, 0.0)],
-					"output": [Genome_Node.new(3, 0.0)]
+					"hidden": [Genome_Node.new(2, 0.0), Genome_Node.new(3, 0.0)],
+					"output": [Genome_Node.new(4, 0.0)]
 				},
 				{
 					0: Genome_Connection.new(0, 2, 1.0),
 					1: Genome_Connection.new(1, 2, 1.0),
-					2: Genome_Connection.new(2, 3, 1.0)
+					2: Genome_Connection.new(0, 3, 1.0),
+					3: Genome_Connection.new(1, 3, 1.0),
+					4: Genome_Connection.new(2, 4, 1.0),
+					5: Genome_Connection.new(3, 4, 1.0)
 				}
 			)
-			
-			gene.randomize_weights_and_biases()
-			print(gene.get_connections()[0].get_weight())
-			print(gene.get_connections()[1].get_weight())
 			
 			var occured_mutation = gene.mutate()
 			if occured_mutation["type"] != "none":
@@ -95,11 +102,11 @@ func create_generation() -> void:
 		else:
 			# TODO Bilde Spezies anhand von der Ähnlichkeit der Innovations-Folge der
 			# Genome und lasse die stärksten Genome in jeder Spezies fortpflanzen.
-			var key = dead_scores_and_genomes.keys()[0] # FÜR DEBUG MIT EINZELNER POP
-			gene = Genome.new(
-				dead_scores_and_genomes[key].get_nodes(),
-				dead_scores_and_genomes[key].get_connections()
-			)
+			#var first_entry = dead_scores_and_genomes[0] # FÜR DEBUG MIT EINZELNER POP
+			#var first_genome: Genome = first_entry["genome"]
+			#gene = first_genome.clone()
+			
+			
 			
 			var occured_mutation = gene.mutate()
 			if occured_mutation["type"] != "none":
@@ -114,8 +121,8 @@ func create_generation() -> void:
 			
 			print("Mutation: " + str(occured_mutation))
 		
-		create_doodle.emit(Doodle, spawn_coord[0], spawn_coord[1], gene, current_pops)
 		current_pops += 1
+		create_doodle.emit(Doodle, spawn_coord[0], spawn_coord[1], gene)
 	dead_scores_and_genomes.clear()
 
 
@@ -131,7 +138,7 @@ func _on_doodle_death_by_falling(genome: Genome, score: float) -> void:
 	var rounded_score = roundf(score)
 	
 	# speichere das Gene des gestorbenen Doodles und den dazuhgehörigen Score
-	dead_scores_and_genomes[rounded_score] = genome
+	dead_scores_and_genomes.append({"score": rounded_score, "genome": genome})
 	
 	if rounded_score < this_gen_record_height:
 		this_gen_record_height = rounded_score
