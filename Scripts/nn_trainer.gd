@@ -27,12 +27,11 @@ var innovation_counter: int = 0
 # dieser die selbe innovations-Nummer zugeordnet.
 var mutation_tracker: Dictionary = {}
 """
-Struktur: Im Key die Mutation, im Value die Innovationsnummer
+Struktur: Im Key die detailierte Mutation, im Value die Innovationsnummer(n)
+Bei einer add_node-Mutation werden zwei Innovationsnummern gebraucht - eine für jede neue Connection!
 	mutation_tracker = {
-		occured_mutation{...}: 0,
-		occured_mutation{...}: 2,
-		occured_mutation{...}: 5,
-		occured_mutation{...}: 12,
+		"add_con_between_3_5": 12,
+		"add_node_between_6_7": [13, 14],
 		...
 	}
 """
@@ -70,9 +69,9 @@ func create_generation() -> void:
 		if generation_count == 0:
 			gene = Genome.new(
 				{
-					"input": [Genome_Node.new(0, 0.0), Genome_Node.new(1, 0.0)],
-					"hidden": [Genome_Node.new(2, 0.0), Genome_Node.new(3, 0.0)],
-					"output": [Genome_Node.new(4, 0.0)]
+					"input": [Genome_Node.new(0, 0, 0.0), Genome_Node.new(1, 0, 0.0)],
+					"hidden": [Genome_Node.new(2, 1, 0.0), Genome_Node.new(3, 1, 0.0)],
+					"output": [Genome_Node.new(4, 2, 0.0)]
 				},
 				{
 					0: Genome_Connection.new(0, 2, 1.0),

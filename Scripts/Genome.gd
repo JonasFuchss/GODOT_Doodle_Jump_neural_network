@@ -8,22 +8,25 @@ Struktur des Nodes-Dictionary: Type im Key, Array mit Objekten als Value
 
 	nodes = {
 		"input":	[
-			Genome_Node(number, bias),
-			Genome_Node(number, bias),
+			Genome_Node(number, layer, bias),
+			Genome_Node(number, layer, bias),
 			...
 		],
 		"hidden":[
-			Genome_Node(number, bias),
-			Genome_Node(number, bias),
+			Genome_Node(number, layer, bias),
+			Genome_Node(number, layer, bias),
 			...
 		],
 		"output":[
-			Genome_Node(number, bias),
-			Genome_Node(number, bias),
+			Genome_Node(number, layer, bias),
+			Genome_Node(number, layer, bias),
 			...
 		]
 	}
 """
+
+# Zum durchgehenden Hochzählen der Connections / Nodes
+var node_number: int = 0
 
 var connections: Dictionary
 """
@@ -69,28 +72,25 @@ var missing_connections: Array[Array]
 		]
 """
 
-# Zum durchgehenden Hochzählen der Connections / Nodes
-var node_number: int = 0
 
-
-func _init(_nodes: Dictionary, _connections: Dictionary, _enabled_connections: Array, _disabled_connections: Array):
+func _init(_nodes: Dictionary, _connections: Dictionary, _enabled_connections: Array, _disabled_connections: Array, _missing_connections: Array[Array]):
 	nodes		= _nodes
-	node_number = _nodes["input"].size() + nodes["hidden"].size() + nodes["output"].size()
-	
+	node_number = nodes["input"].size() + nodes["hidden"].size() + nodes["output"].size()
 	connections	= _connections
 	enabled_connections = _enabled_connections
 	disabled_connections = _disabled_connections
+	missing_connections = _missing_connections
 
 
 func clone() -> Genome:
-	"""Gibt eine Kopie des aktuellen Genoms zurück."""
-	var new_genome = Genome.new(self.nodes, self.connections, self.enabled_connections, self.disabled_connections)
+	"""Gibt eine tiefe Kopie des aktuellen Genoms zurück."""
+	var new_genome = Genome.new(self.nodes.duplicate(true), self.connections.duplicate(true), self.enabled_connections.duplicate(true), self.disabled_connections.duplicate(true), self.missing_connections.duplicate(true))
 	return new_genome
 
 
-func add_node(type: String, bias: float) -> int:
+func add_node(type: String, layer: int, bias: float) -> int:
 	"""Erstellt eine neue Node mit der fortlaufenden, neuen ID und gibt die ID zurück"""
-	var node = Genome_Node.new(node_number, bias)
+	var node = Genome_Node.new(node_number, layer, bias)
 	nodes[type].append(node)
 	node_number += 1
 	return node_number - 1
@@ -175,7 +175,22 @@ func get_enabled_connections() -> Array:
 func get_missing_connections() -> Array:
 	return missing_connections
 
-func mutate(current_innov_number: int, mutation_tracker: Dictionary):
+func add_layer_and_shift_right(new_layer_number) -> void:
+	"""
+	Fügt ein Layer an Index new_layer_number zwischen zwei bestehenden Layern ein.
+	Dies "bewegt" logischerweise alle Nodes mit einem Layer >= eine Stufe weiter nach rechts.
+	"""
+	for node_type in nodes.keys():
+		# Input hat immer Layer 0, kann daher beim Verschieben geskippt werden.
+		if node_type == "input":
+			continue
+		for node: Genome_Node in nodes[node_type]:
+			var i = node.get_layer()
+			if i >= new_layer_number:
+				node.set_layer(i + 1)
+	
+
+func mutate(current_max_innov_number: int, mutation_tracker: Dictionary) -> Array:
 	"""
 	Mutiert anhand der Wahrscheinlichkeiten unten. Gibt danach eine erweiterte
 	(oder gleichgebliebene, falls es diese Mutation schon mal gab oder sie
@@ -186,9 +201,9 @@ func mutate(current_innov_number: int, mutation_tracker: Dictionary):
 			Das Gewicht einer Connection ändert sich. Nicht strukturell / tracked.
 			A.1: Änderung im Intervall +-0.3 (90%)
 			A.2: Änderung mit vollständig zufälligem Wert (10%)
-		B: Connection-Hinzufügen-Änderung (3%)
+		B: Connection-Hinzufügen (3%)
 			Die Erstellung einer noch nicht bestehenden Connection.
-		C: Node-Hinzufügen-Änderung (5%)
+		C: Node-Hinzufügen (5%)
 			Die Erstellung einer neuen Node anstelle einer bereits aktiven
 			Connection. Resultiert in der Deaktivierung der alten Connection und
 			der Erstellung von zwei neuen Connections mit der neuen Node (in-
@@ -213,27 +228,71 @@ func mutate(current_innov_number: int, mutation_tracker: Dictionary):
 			var new_weight = randf()
 			connections[con_id].set_weight(new_weight)
 			
-	# Mutation B, Wahrscheinlichkeit 3%
+	# Mutation B, Wahrscheinlichkeit 3% & nur falls es nicht-existierende Connections gibt
 	if randf() <= 0.03 and not missing_connections.is_empty():
-		## TODO
+		var innov_num = current_max_innov_number + 1
+		var added_con_nodes = missing_connections.pick_random()
+		var mutation_key = "add_con_between_%d_%d" % [added_con_nodes[0], added_con_nodes[1]]
+		# lösche die hinzuzufügende Verbindung aus missing_connections
+		missing_connections.erase(added_con_nodes) 
+		# Gab es diese Mutation in der Generation schon? Wenn ja nutze ihre
+		# Innovationsnummer, wenn nein logge sie und nehm die nächste.
+		if mutation_tracker.has(mutation_key):
+			innov_num = mutation_tracker[mutation_key]
+		else:
+			current_max_innov_number = innov_num
+			mutation_tracker[mutation_key] = current_max_innov_number
+		# Erstelle neue Verbindung zwischen den Node-IDs von missing_connections
+		add_connection(added_con_nodes[0], added_con_nodes[1], randf(), innov_num)
+		
 	
 	# Mutation C, Wahrscheinlichkeit 5%
 	if randf() <= 0.05:
-		
+		var innov_num_1 = current_max_innov_number + 1
+		var innov_num_2 = current_max_innov_number + 2
+		var replaced_connection_id = enabled_connections.pick_random()
+		var old_con_origin = connections[replaced_connection_id].get_origin()
+		var old_con_target = connections[replaced_connection_id].get_target()
+		var old_con_weight = connections[replaced_connection_id].get_weight()
+		var origin_node_layer = get_node_by_id(old_con_origin).get_layer()
+		var target_node_layer = get_node_by_id(old_con_target).get_layer()
+		var mutation_key = "add_node_between_%d_%d" % [old_con_origin, old_con_target]
+		# Deaktivieren der ersetzten Verbindung
+		disable_connection(replaced_connection_id)
+		# erstelle eine neue hidden Node mit dem Layer hinter der Original-Node:
+		var new_node_layer = origin_node_layer + 1
+		# Wenn zwischen beiden Original-Nodes noch kein Layer existiert (1 Differenz),
+		# lege ein neues an und ändere alle Nodes mit layer >= targetlayer um +1  
+		if target_node_layer - origin_node_layer == 1:
+			add_layer_and_shift_right(new_node_layer)
+		var new_node_id = add_node("hidden", new_node_layer, randf_range(-1.0, 1.0))
+		# Gab es diese Mutation in der Generation schon? Wenn ja nutze ihre
+		# Innovationsnummern, wenn nein logge sie und nehm die nächsten zwei.
+		if mutation_tracker.has(mutation_key):
+			innov_num_1 = mutation_tracker[mutation_key][0]
+			innov_num_2 = mutation_tracker[mutation_key][1]
+		else:
+			current_max_innov_number += 2
+			mutation_tracker[mutation_key] = [current_max_innov_number - 1, current_max_innov_number]
+		add_connection(old_con_origin, new_node_id, 1.0, innov_num_1)
+		add_connection(new_node_id, old_con_target, old_con_weight, innov_num_2)
+		# Füge alle neuen, potentiellen Connections missing_connections hinzu:
+		for type_key in nodes.keys():
+			for node: Genome_Node in nodes[type_key]:
+				var num = node.get_number()
+				var layer = node.get_layer()
+				if num != old_con_origin and num != old_con_target and num != new_node_id:
+					if layer < new_node_layer:
+						missing_connections.append([num, new_node_id])
+					elif layer > new_node_layer:
+						missing_connections.append([new_node_id, num])
+	
+	return [current_max_innov_number, mutation_tracker]
 
 
 
 var _input_values: Dictionary = {} # node_id → input-Wert
 var _output_cache: Dictionary = {} # node_id → bereits berechnete Ergebnisse
-
-func activation(x: float) -> float:
-	"""
-	Gibt den tanh-Wert der gegebenen Float-Zahl zurück.
-	Der resultierende Wert liegt zwischen -1.0 und 1.0
-	Auch als "Squashing-Funktion" bezeichnet, da sie alle sehr großen (negativen
-	oder positiven) Eingaben auf (fast) -1 oder 1 "zusammendrückt".
-	"""
-	return (exp(x) - exp(-x)) / (exp(x) + exp(-x))
 
 func calc_node_output(node_id: int) -> float:
 	# 1) Prüfen, ob das Ergebnis schon im Cache ist
@@ -259,8 +318,12 @@ func calc_node_output(node_id: int) -> float:
 	var node_obj: Genome_Node = get_node_by_id(node_id)
 	sum += node_obj.get_bias()
 	
-	# 5) Aktivierung anwenden und ins Cache schreiben
-	var out = activation(sum)
+	# 5) Aktivierung anwenden und ins Cache schreiben.
+	# tanh() gibt den tanh-Wert der gegebenen Float-Zahl zurück.
+	# Der resultierende Wert liegt zwischen -1.0 und 1.0
+	# Auch als "Squashing-Funktion" bezeichnet, da sie alle sehr großen (negativen
+	# oder positiven) Eingaben auf (fast) -1 oder 1 "zusammendrückt".
+	var out = tanh(sum)
 	_output_cache[node_id] = out
 	return out
 
