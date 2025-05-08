@@ -62,6 +62,8 @@ func create_generation() -> void:
 	for pop in pop_count:
 		var gene: Genome
 		
+		var species: Array = 
+		
 		# Wenn Gen 0, erstelle Gene mit Initialwerten
 		# Anfängliche Genom-Struktur, in der ersten Generation bei allen gleich.
 		# Bei Erstellung der ersten Generation passieren erste Mutationen
@@ -106,8 +108,6 @@ func create_generation() -> void:
 			#var first_genome: Genome = first_entry["genome"]
 			#gene = first_genome.clone()
 			
-			
-			
 			var occured_mutation = gene.mutate()
 			if occured_mutation["type"] != "none":
 				var this_innovation_number: int
@@ -124,6 +124,17 @@ func create_generation() -> void:
 		current_pops += 1
 		create_doodle.emit(Doodle, spawn_coord[0], spawn_coord[1], gene)
 	dead_scores_and_genomes.clear()
+
+
+func spezify(s_and_g) -> Array:
+	"""
+	Teilt die übergebenen genome in Spezies auf.
+	Allgemeine Formel:
+		delta = (ExcessGenes / largestGenomeSize) + (DisjointGenes / largestGenomeSize) +
+				0.3 * AverageWeightDifferenceOfMatchingGenes
+	"""
+	
+	pass
 
 
 func _on_root_level_built(x_coord: float, y_coord: float) -> void:
