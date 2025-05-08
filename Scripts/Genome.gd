@@ -72,11 +72,24 @@ var missing_connections: Array[Array]
 		]
 """
 
+var incoming_connections: Dictionary = {}
+"""
+Für eine performantere Feed-Forward-Funktion.
+	node_id → Array[Tuple(origin_id, weight_ref)]
+"""
+
 
 func _init(_nodes: Dictionary, _connections: Dictionary, _enabled_connections: Array, _disabled_connections: Array, _missing_connections: Array[Array]):
 	nodes		= _nodes
 	node_number = nodes["input"].size() + nodes["hidden"].size() + nodes["output"].size()
 	connections	= _connections
+	incoming_connections.clear()
+	for innov_id in connections.keys():
+		var con: Genome_Connection = connections[innov_id]
+		var tgt = con.get_target()
+		if not incoming_connections.has(tgt):
+			incoming_connections[tgt] = []
+		incoming_connections[tgt].append([ con.get_origin(), con ])
 	enabled_connections = _enabled_connections
 	disabled_connections = _disabled_connections
 	missing_connections = _missing_connections
@@ -85,6 +98,7 @@ func _init(_nodes: Dictionary, _connections: Dictionary, _enabled_connections: A
 func clone() -> Genome:
 	"""Gibt eine tiefe Kopie des aktuellen Genoms zurück."""
 	var new_genome = Genome.new(self.nodes.duplicate(true), self.connections.duplicate(true), self.enabled_connections.duplicate(true), self.disabled_connections.duplicate(true), self.missing_connections.duplicate(true))
+	new_genome.incoming_connections = self.incoming_connections.duplicate(true)
 	return new_genome
 
 
@@ -100,6 +114,9 @@ func add_connection(origin_node_id: int, target_node_id: int, weight: float, inn
 	var connection = Genome_Connection.new(origin_node_id, target_node_id, weight)
 	connections[innovation_number] = connection
 	enable_connection(innovation_number)
+	if not incoming_connections.has(target_node_id):
+		incoming_connections[target_node_id] = []
+	incoming_connections[target_node_id].append([origin_node_id, connection])
 
 func get_connections_from_node(node_id: int) -> Array:
 	"""Gibt für eine Node (per ID spezifiziert) die IDs aller damit
@@ -119,11 +136,26 @@ func disable_connection(connection_id: int) -> void:
 	"""Deaktiviere eine Verbindung anhand ihrer ID und füge sie disabled_connections hinzu"""
 	enabled_connections.erase(connection_id)
 	disabled_connections.append(connection_id)
+	
+	var con: Genome_Connection = connections[connection_id]
+	var tgt: int = con.get_target()
+	if incoming_connections.has(tgt):
+		# filtert alle Paare heraus, deren conn_ref == diese Connection
+		var cleaned: Array = []
+		for pair in incoming_connections[tgt]:
+			if pair[1] != con:
+				cleaned.append(pair)
+		incoming_connections[tgt] = cleaned
 
 func enable_connection(connection_id: int) -> void:
 	"""(Re)aktiviere eine Verbindung anhand ihrer ID"""
 	disabled_connections.erase(connection_id)
 	enabled_connections.append(connection_id)
+	var con: Genome_Connection = connections[connection_id]
+	var tgt: int = con.get_target()
+	if not incoming_connections.has(tgt):
+		incoming_connections[tgt] = []
+	incoming_connections[tgt].append([ con.get_origin(), con ])
 
 func get_node_ids(type: String = "", all: bool = true) -> Array:
 	"""gibt ein Array mit allen Node-IDs des gegebenen Typs zurück.
@@ -295,37 +327,23 @@ var _input_values: Dictionary = {} # node_id → input-Wert
 var _output_cache: Dictionary = {} # node_id → bereits berechnete Ergebnisse
 
 func calc_node_output(node_id: int) -> float:
-	# 1) Prüfen, ob das Ergebnis schon im Cache ist
 	if _output_cache.has(node_id):
 		return _output_cache[node_id]
-	
-	# 2) Ist es eine Input-Node? Dann einfach den vorgegebenen Wert nehmen
-	if _input_values.has(node_id):
-		var val = _input_values[node_id]
-		_output_cache[node_id] = val
-		return val
-	
-	# 3) Sonst: alle eingehenden Verbindungen aufsammeln
+
 	var sum := 0.0
-	for con_id in connections.keys():
-		var con: Genome_Connection = connections[con_id]
-		if con.get_target() == node_id:
-			var origin_id = con.get_origin()
-			var origin_out = calc_node_output(origin_id)
-			sum += origin_out * con.get_weight()
-	
-	# 4) Bias der Node holen
+	if incoming_connections.has(node_id):
+		for pair in incoming_connections[node_id]:
+			var origin_id: int = pair[0]
+			var connection: Genome_Connection = pair[1]
+			sum += calc_node_output(origin_id) * connection.get_weight()
+
 	var node_obj: Genome_Node = get_node_by_id(node_id)
 	sum += node_obj.get_bias()
-	
-	# 5) Aktivierung anwenden und ins Cache schreiben.
-	# tanh() gibt den tanh-Wert der gegebenen Float-Zahl zurück.
-	# Der resultierende Wert liegt zwischen -1.0 und 1.0
-	# Auch als "Squashing-Funktion" bezeichnet, da sie alle sehr großen (negativen
-	# oder positiven) Eingaben auf (fast) -1 oder 1 "zusammendrückt".
+
 	var out = tanh(sum)
 	_output_cache[node_id] = out
 	return out
+
 
 func feed_forward(input_dict: Dictionary) -> Array:
 	"""
@@ -333,8 +351,10 @@ func feed_forward(input_dict: Dictionary) -> Array:
 	Gibt ein Array zurück mit den Outputs aller Output-Nodes
 	"""
 	# Reset Cache und Input-Werte
-	_input_values = input_dict.duplicate()
 	_output_cache.clear()
+	_input_values = input_dict.duplicate()
+	for node_id in input_dict.keys():
+		_output_cache[node_id] = input_dict[node_id]
 	
 	var results := []
 	for node in nodes["output"]:

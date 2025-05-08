@@ -55,13 +55,12 @@ func _ready() -> void:
 	highscore_label = get_node("/root/root/Camera2D/Header/Highscore")
 
 func create_generation() -> void:
+	print("creating generation")
 	# Zurücksetzen des generations-spezifischen mutations-trackers & Scores der letzten Runde
 	mutation_tracker.clear()
 	
 	for pop in pop_count:
 		var gene: Genome
-		
-		var species: Array = 
 		
 		# Wenn Gen 0, erstelle Gene mit Initialwerten
 		# Anfängliche Genom-Struktur, in der ersten Generation bei allen gleich.
@@ -80,46 +79,29 @@ func create_generation() -> void:
 					3: Genome_Connection.new(1, 3, 1.0),
 					4: Genome_Connection.new(2, 4, 1.0),
 					5: Genome_Connection.new(3, 4, 1.0)
-				}
+				},
+				[0,1,2,3,4,5],
+				[],
+				[]
 			)
 			
-			var occured_mutation = gene.mutate()
-			if occured_mutation["type"] != "none":
-				var this_innovation_number: int
-				# Ist diese Mutation in dieser Generation so schon einmal vorgekommen?
-				# Wenn ja, ordne ihr dieselbe innovationsnummer zu. Wenn nein, erhöhe die
-				# Mutationsnummer, ordne die höhere zu und logge die Mutation für die
-				# die jetzige Mutation.
-				if mutation_tracker.has(occured_mutation):
-					this_innovation_number = mutation_tracker[occured_mutation]
-				else:
-					innovation_counter += 1
-					this_innovation_number = innovation_counter
-					mutation_tracker[occured_mutation] = innovation_counter
-				gene.add_mutation(this_innovation_number, occured_mutation)
+			var mutate_tuple = gene.mutate(innovation_counter, mutation_tracker)
+			innovation_counter = mutate_tuple[0]
+			mutation_tracker = mutate_tuple[1]
+			print(str(mutation_tracker))
 			
-			print("Mutation: " + str(occured_mutation))
-		
 		else:
 			# TODO Bilde Spezies anhand von der Ähnlichkeit der Innovations-Folge der
 			# Genome und lasse die stärksten Genome in jeder Spezies fortpflanzen.
-			#var first_entry = dead_scores_and_genomes[0] # FÜR DEBUG MIT EINZELNER POP
-			#var first_genome: Genome = first_entry["genome"]
-			#gene = first_genome.clone()
+			var first_entry = dead_scores_and_genomes[0] # FÜR DEBUG MIT EINZELNER POP
+			var first_genome: Genome = first_entry["genome"]
+			gene = first_genome.clone()
 			
-			var occured_mutation = gene.mutate()
-			if occured_mutation["type"] != "none":
-				var this_innovation_number: int
-				if mutation_tracker.has(occured_mutation):
-					this_innovation_number = mutation_tracker[occured_mutation]
-				else:
-					innovation_counter += 1
-					this_innovation_number = innovation_counter
-					mutation_tracker[occured_mutation] = innovation_counter
-				gene.add_mutation(this_innovation_number, occured_mutation)
+			var mutate_tuple = gene.mutate(innovation_counter, mutation_tracker)
+			innovation_counter = mutate_tuple[0]
+			mutation_tracker = mutate_tuple[1]
+			print(str(mutation_tracker))
 			
-			print("Mutation: " + str(occured_mutation))
-		
 		current_pops += 1
 		create_doodle.emit(Doodle, spawn_coord[0], spawn_coord[1], gene)
 	dead_scores_and_genomes.clear()
@@ -132,8 +114,7 @@ func spezify(s_and_g) -> Array:
 		delta = (ExcessGenes / largestGenomeSize) + (DisjointGenes / largestGenomeSize) +
 				0.3 * AverageWeightDifferenceOfMatchingGenes
 	"""
-	
-	pass
+	return []
 
 
 func _on_root_level_built(x_coord: float, y_coord: float) -> void:
