@@ -1,7 +1,7 @@
 extends Node
 
 var generation_count: int = 0
-var pop_count: int = 1
+var pop_count: int = 150
 var current_pops: int = 0
 var spawn_coord: Array = []
 
@@ -12,7 +12,7 @@ var this_gen_record_height: float = 1
 # Doodles. Wird beim Erstellen einer neuen Gen zurückgesetzt.
 var dead_scores_and_genomes: Array[Dictionary] = []
 """
-Struktur: Liste mit Dictionaries, welche Score und Genom beinhalten:
+Struktur: Dictionary, welche Score und Genom beinhalten:
 	dead_scores_and_genomes = [
 		{"score": 244, "genome": >genome< },
 		{"score": 41, "genome": >genome< },
@@ -37,9 +37,7 @@ Bei einer add_node-Mutation werden zwei Innovationsnummern gebraucht - eine für
 """
 
 
-var target_species_count = 1
 var species_threshold = 3.0
-var threshold_step = 0.05
 
 
 var highscore_label: Label
@@ -69,18 +67,14 @@ func create_generation() -> void:
 			gene = Genome.new(
 				{
 					"input": [Genome_Node.new(0, 0, 0.0), Genome_Node.new(1, 0, 0.0)],
-					"hidden": [Genome_Node.new(2, 1, 0.0), Genome_Node.new(3, 1, 0.0)],
-					"output": [Genome_Node.new(4, 2, 0.0)]
+					"hidden": [],
+					"output": [Genome_Node.new(2, 1, 0.0)]
 				},
 				{
 					0: Genome_Connection.new(0, 2, 1.0),
 					1: Genome_Connection.new(1, 2, 1.0),
-					2: Genome_Connection.new(0, 3, 1.0),
-					3: Genome_Connection.new(1, 3, 1.0),
-					4: Genome_Connection.new(2, 4, 1.0),
-					5: Genome_Connection.new(3, 4, 1.0)
 				},
-				[0,1,2,3,4,5],
+				[0,1],
 				[],
 				[]
 			)
@@ -88,22 +82,26 @@ func create_generation() -> void:
 			var mutate_tuple = gene.mutate(innovation_counter, mutation_tracker)
 			innovation_counter = mutate_tuple[0]
 			mutation_tracker = mutate_tuple[1]
-			print(str(mutation_tracker))
 			
 		else:
 			# TODO Bilde Spezies anhand von der Ähnlichkeit der Innovations-Folge der
 			# Genome und lasse die stärksten Genome in jeder Spezies fortpflanzen.
-			var first_entry = dead_scores_and_genomes[0] # FÜR DEBUG MIT EINZELNER POP
-			var first_genome: Genome = first_entry["genome"]
-			gene = first_genome.clone()
+			var bestPerforming: Genome
+			var highscore: float = 0.0
+			for entry in dead_scores_and_genomes:
+				if entry["score"] >= highscore:
+					highscore = entry["score"]
+					bestPerforming = entry["genome"]
+			
+			gene = bestPerforming.clone()
 			
 			var mutate_tuple = gene.mutate(innovation_counter, mutation_tracker)
 			innovation_counter = mutate_tuple[0]
 			mutation_tracker = mutate_tuple[1]
-			print(str(mutation_tracker))
 			
 		current_pops += 1
 		create_doodle.emit(Doodle, spawn_coord[0], spawn_coord[1], gene)
+	print(str(mutation_tracker))
 	dead_scores_and_genomes.clear()
 
 

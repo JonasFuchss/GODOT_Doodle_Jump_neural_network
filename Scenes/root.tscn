@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://c7bmoki1sbp2n"]
+[gd_scene load_steps=8 format=3 uid="uid://c7bmoki1sbp2n"]
 
 [ext_resource type="Script" path="res://Scripts/root.gd" id="1_wjoyd"]
+[ext_resource type="PackedScene" uid="uid://de7tqdcy6guv3" path="res://Scenes/UI Prefabs/ui_graph.tscn" id="2_at62a"]
 [ext_resource type="Texture2D" uid="uid://dglm40wl41pkb" path="res://assets/bck.png" id="3_pe3wc"]
 [ext_resource type="Script" path="res://Scripts/nn_trainer.gd" id="5_bf6py"]
 
@@ -16,6 +17,10 @@ font_color = Color(0, 0, 0, 1)
 
 [node name="root" type="Node2D"]
 script = ExtResource("1_wjoyd")
+
+[node name="graph_root" parent="." instance=ExtResource("2_at62a")]
+scale = Vector2(0.5, 0.5)
+transform = Transform2D(0.5, 0, 0, 0.5, 0, 0)
 
 [node name="Platforms" type="Node2D" parent="."]
 
