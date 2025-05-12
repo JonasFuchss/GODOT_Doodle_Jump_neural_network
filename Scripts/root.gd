@@ -16,6 +16,7 @@ var camera: Camera2D
 @onready var background: Sprite2D= $"Parallax2D/Sprite2D"
 
 signal level_built(x_spawn, y_spawn)
+signal new_highscore()
 
 func _ready()-> void:
 	camera = $Camera2D
@@ -61,7 +62,8 @@ func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, gene:
 func _on_doodle_highest_jump(height_y):
 	if camera.position.y > height_y:
 		camera.position.y = height_y
-		
+		new_highscore.emit()
+	
 	# setze den neuen Highscore im UI
 	var highscore_label: Label = get_node("Camera2D/Header/Highscore")
 	if float(highscore_label.get_text()) < abs(height_y):

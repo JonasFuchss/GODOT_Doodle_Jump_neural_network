@@ -285,7 +285,7 @@ func mutate(current_max_innov_number: int, mutation_tracker: Dictionary) -> Arra
 		
 	
 	# Mutation C, Wahrscheinlichkeit 5%
-	if randf() <= 1.05:
+	if randf() <= 0.05:
 		var innov_num_1 = current_max_innov_number + 1
 		var innov_num_2 = current_max_innov_number + 2
 		var replaced_connection_id = enabled_connections.pick_random()
