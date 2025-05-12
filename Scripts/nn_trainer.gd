@@ -1,7 +1,8 @@
 extends Node
 
-var graph_painter = preload("res://Scenes/UI Prefabs/ui_graph.tscn")
-var camera: Camera2D
+var graph_painter	= preload("res://Scenes/UI Prefabs/ui_graph.tscn")
+var arrow_drawer	= preload("res://Scenes/UI Prefabs/arrow_drawer.tscn")
+var graph_root: Control
 
 var generation_count: int = 0
 var pop_count: int = 1
@@ -10,6 +11,7 @@ var spawn_coord: Array = []
 
 var current_record_height: float = 1
 var this_gen_record_height: float = 1
+
 
 # Trackt innerhalb einer Generation den Score und das Genom aller gestorbenen
 # Doodles. Wird beim Erstellen einer neuen Gen zurückgesetzt.
@@ -23,8 +25,9 @@ Struktur: Dictionary, welche Score und Genom beinhalten:
 	]
 """
 
-# Trackt die Zahl der Mutationen generationsübergreifend.
-var innovation_counter: int = 0
+# Trackt die Zahl der Mutationen generationsübergreifend. Muss mit der anfänglichen 
+# Zahl an Connections -1 beginnen, da die Connection-IDs daran gekoppelt sind
+var innovation_counter: int = 1
 # Trackt strukturelle Mutationen für jede Generation einzeln. Mutationen, welche innerhalb
 # einer Generation identisch sind (zB 02 -> 04 splittet in 02 -> 05 -> 04) wird
 # dieser die selbe innovations-Nummer zugeordnet.
@@ -54,7 +57,7 @@ signal need_new_level(generation)
 func _ready() -> void:
 	print("nn_trainer ready")
 	highscore_label = get_node("/root/root/Camera2D/Header/Highscore")
-	camera = get_node("/root/root/Camera2D")
+	graph_root = get_node("/root/root/Camera2D/graph_root")
 
 func create_generation() -> void:
 	print("creating generation")
@@ -87,13 +90,37 @@ func create_generation() -> void:
 			innovation_counter = mutate_tuple[0]
 			mutation_tracker = mutate_tuple[1]
 			
+			var graph_inst = graph_painter.instantiate()
+			graph_root.add_child(graph_inst)
+			var node_dictionary = graph_inst.build_graph(gene.nodes["output"][0].get_layer(), gene.nodes, gene.connections)
+			graph_inst.set_connected_genome(gene)
+			
+			# Nachdem alle Layer gebaut sind, Verbinde die entsprechenden Nodes mit Pfeilen:
+			for con_key in gene.connections.keys():
+				if gene.disabled_connections.find(con_key) == -1:
+					var orig_id: int	= gene.connections[con_key].get_origin()
+					var targ_id: int	= gene.connections[con_key].get_target()
+					var orig_node: Control = node_dictionary[orig_id]
+					var targ_node: Control = node_dictionary[targ_id]
+					var weight: float		= gene.connections[con_key].get_weight()
+					var arrow_inst: Control = arrow_drawer.instantiate()
+					graph_root.add_child(arrow_inst)
+					arrow_inst.set_draw_params(orig_node, targ_node, weight)
+			
+			print(get_parent().get_tree_string_pretty())
+			
 		else:
+			# Lösche alle vorherigen Graphen und Pfeile
+			var childs = graph_root.get_children()
+			for child: Node in childs:
+				child.free()
+			
 			# TODO Bilde Spezies anhand von der Ähnlichkeit der Innovations-Folge der
 			# Genome und lasse die stärksten Genome in jeder Spezies fortpflanzen.
 			var bestPerforming: Genome
 			var highscore: float = 0.0
 			for entry in dead_scores_and_genomes:
-				if entry["score"] >= highscore:
+				if entry["score"] <= highscore:
 					highscore = entry["score"]
 					bestPerforming = entry["genome"]
 			
@@ -104,8 +131,23 @@ func create_generation() -> void:
 			mutation_tracker = mutate_tuple[1]
 			
 			var graph_inst = graph_painter.instantiate()
-			graph_inst.build_graph(gene.nodes["output"][0].get_layer(), gene.nodes, gene.connections)
+			graph_root.add_child(graph_inst)
+			var node_dictionary = graph_inst.build_graph(gene.nodes["output"][0].get_layer(), gene.nodes, gene.connections)
 			graph_inst.set_connected_genome(gene)
+			
+			# Nachdem alle Layer gebaut sind, Verbinde die entsprechenden Nodes mit Pfeilen:
+			for con_key in gene.connections.keys():
+				if gene.disabled_connections.find(con_key) == -1:
+					var orig_id: int	= gene.connections[con_key].get_origin()
+					var targ_id: int	= gene.connections[con_key].get_target()
+					var orig_node: Control = node_dictionary[orig_id]
+					var targ_node: Control = node_dictionary[targ_id]
+					var weight: float		= gene.connections[con_key].get_weight()
+					var arrow_inst = arrow_drawer.instantiate()
+					graph_root.add_child(arrow_inst)
+					arrow_inst.set_draw_params(orig_node, targ_node, weight)
+			
+			print(get_parent().get_tree_string_pretty())
 			
 		current_pops += 1
 		create_doodle.emit(Doodle, spawn_coord[0], spawn_coord[1], gene)
