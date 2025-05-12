@@ -21,12 +21,18 @@ signal new_highscore()
 func _ready()-> void:
 	camera = $Camera2D
 	
+	# Für immer gleichbleibende Plattformen und Startpositionen wird der Seed immer
+	# auf 1 gesetzt, nach dem Erstellen dann aber wieder zufällig.
+	seed(1)
+	
 	var x_player_pos = rand_x()
 	var y_player_pos = threshold
 	
 	for i in platformCount:
 		createPlatform(rand_x(), -(platformGap * randf_range(0.9, 1.0) * (i-1)))
-		
+	
+	randomize()
+	
 	# Die unterste Plattform muss unter dem Spieler sein
 	platforms.front().global_position.x = x_player_pos
 	
@@ -84,14 +90,18 @@ func _on_nn_trainer_need_new_level(generation_number) -> void:
 	for p in platforms:
 		p.queue_free()
 	platforms.clear()
-
+	
+	seed(1)
+	
 	var x_player_pos = rand_x()
 	var y_player_pos = threshold
 	
 	# erstelle neue Platformen
 	for i in platformCount:
 		createPlatform(rand_x(), -(platformGap * randf_range(0.9, 1.0) * (i-1)))
-		
+	
+	randomize()
+	
 	# Die unterste Plattform muss unter dem Spieler sein
 	platforms.front().global_position.x = x_player_pos
 	

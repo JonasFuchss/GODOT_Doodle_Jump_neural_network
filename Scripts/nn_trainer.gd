@@ -15,6 +15,7 @@ var this_gen_record_height: float = 1
 
 # Trackt innerhalb einer Generation den Score und das Genom aller gestorbenen
 # Doodles. Wird beim Erstellen einer neuen Gen zurückgesetzt.
+# Kann kein Dict mit Score als Key sein, da Keys sich nicht doppeln dürfen (duh)
 var dead_scores_and_genomes: Array[Dictionary] = []
 """
 Struktur: Dictionary, welche Score und Genom beinhalten:
