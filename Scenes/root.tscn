@@ -20,7 +20,6 @@ script = ExtResource("1_wjoyd")
 
 [node name="graph_root" parent="." instance=ExtResource("2_at62a")]
 scale = Vector2(0.5, 0.5)
-transform = Transform2D(0.5, 0, 0, 0.5, 0, 0)
 
 [node name="Platforms" type="Node2D" parent="."]
 

@@ -1,5 +1,6 @@
 class_name Genome extends Node
 
+
 # Dictionary mit den Keys "input", "hidden" und "output": Die Values
 # von denen sind Arrays mit den einzelnen Genome_Node-Klassen
 var nodes: Dictionary
@@ -323,7 +324,7 @@ func mutate(current_max_innov_number: int, mutation_tracker: Dictionary) -> Arra
 						missing_connections.append([num, new_node_id])
 					elif layer > new_node_layer:
 						missing_connections.append([new_node_id, num])
-	
+		
 	return [current_max_innov_number, mutation_tracker]
 
 

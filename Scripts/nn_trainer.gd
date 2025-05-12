@@ -1,7 +1,10 @@
 extends Node
 
+var graph_painter = preload("res://Scenes/UI Prefabs/ui_graph.tscn")
+var camera: Camera2D
+
 var generation_count: int = 0
-var pop_count: int = 150
+var pop_count: int = 1
 var current_pops: int = 0
 var spawn_coord: Array = []
 
@@ -51,6 +54,7 @@ signal need_new_level(generation)
 func _ready() -> void:
 	print("nn_trainer ready")
 	highscore_label = get_node("/root/root/Camera2D/Header/Highscore")
+	camera = get_node("/root/root/Camera2D")
 
 func create_generation() -> void:
 	print("creating generation")
@@ -98,6 +102,10 @@ func create_generation() -> void:
 			var mutate_tuple = gene.mutate(innovation_counter, mutation_tracker)
 			innovation_counter = mutate_tuple[0]
 			mutation_tracker = mutate_tuple[1]
+			
+			var graph_inst = graph_painter.instantiate()
+			graph_inst.build_graph(gene.nodes["output"][0].get_layer(), gene.nodes, gene.connections)
+			graph_inst.set_connected_genome(gene)
 			
 		current_pops += 1
 		create_doodle.emit(Doodle, spawn_coord[0], spawn_coord[1], gene)
