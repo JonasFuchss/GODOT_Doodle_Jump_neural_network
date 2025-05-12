@@ -2,7 +2,7 @@ extends Node
 
 var graph_painter	= preload("res://Scenes/UI Prefabs/ui_graph.tscn")
 var arrow_drawer	= preload("res://Scenes/UI Prefabs/arrow_drawer.tscn")
-var graph_root: Control
+var graph_root: CanvasLayer
 
 var generation_count: int = 0
 var pop_count: int = 1
@@ -57,7 +57,7 @@ signal need_new_level(generation)
 func _ready() -> void:
 	print("nn_trainer ready")
 	highscore_label = get_node("/root/root/Camera2D/Header/Highscore")
-	graph_root = get_node("/root/root/Camera2D/graph_root")
+	graph_root = get_node("/root/root/graph_root")
 
 func create_generation() -> void:
 	print("creating generation")
@@ -90,24 +90,7 @@ func create_generation() -> void:
 			innovation_counter = mutate_tuple[0]
 			mutation_tracker = mutate_tuple[1]
 			
-			var graph_inst = graph_painter.instantiate()
-			graph_root.add_child(graph_inst)
-			var node_dictionary = graph_inst.build_graph(gene.nodes["output"][0].get_layer(), gene.nodes, gene.connections)
-			graph_inst.set_connected_genome(gene)
-			
-			# Nachdem alle Layer gebaut sind, Verbinde die entsprechenden Nodes mit Pfeilen:
-			for con_key in gene.connections.keys():
-				if gene.disabled_connections.find(con_key) == -1:
-					var orig_id: int	= gene.connections[con_key].get_origin()
-					var targ_id: int	= gene.connections[con_key].get_target()
-					var orig_node: Control = node_dictionary[orig_id]
-					var targ_node: Control = node_dictionary[targ_id]
-					var weight: float		= gene.connections[con_key].get_weight()
-					var arrow_inst: Control = arrow_drawer.instantiate()
-					graph_root.add_child(arrow_inst)
-					arrow_inst.set_draw_params(orig_node, targ_node, weight)
-			
-			print(get_parent().get_tree_string_pretty())
+			paint_nodes_and_arrows(gene)
 			
 		else:
 			# Lösche alle vorherigen Graphen und Pfeile
@@ -130,24 +113,7 @@ func create_generation() -> void:
 			innovation_counter = mutate_tuple[0]
 			mutation_tracker = mutate_tuple[1]
 			
-			var graph_inst = graph_painter.instantiate()
-			graph_root.add_child(graph_inst)
-			var node_dictionary = graph_inst.build_graph(gene.nodes["output"][0].get_layer(), gene.nodes, gene.connections)
-			graph_inst.set_connected_genome(gene)
-			
-			# Nachdem alle Layer gebaut sind, Verbinde die entsprechenden Nodes mit Pfeilen:
-			for con_key in gene.connections.keys():
-				if gene.disabled_connections.find(con_key) == -1:
-					var orig_id: int	= gene.connections[con_key].get_origin()
-					var targ_id: int	= gene.connections[con_key].get_target()
-					var orig_node: Control = node_dictionary[orig_id]
-					var targ_node: Control = node_dictionary[targ_id]
-					var weight: float		= gene.connections[con_key].get_weight()
-					var arrow_inst = arrow_drawer.instantiate()
-					graph_root.add_child(arrow_inst)
-					arrow_inst.set_draw_params(orig_node, targ_node, weight)
-			
-			print(get_parent().get_tree_string_pretty())
+			paint_nodes_and_arrows(gene)
 			
 		current_pops += 1
 		create_doodle.emit(Doodle, spawn_coord[0], spawn_coord[1], gene)
@@ -163,6 +129,25 @@ func spezify(s_and_g) -> Array:
 				0.3 * AverageWeightDifferenceOfMatchingGenes
 	"""
 	return []
+
+
+func paint_nodes_and_arrows(gene: Genome):
+	var graph_inst = graph_painter.instantiate()
+	graph_root.add_child(graph_inst)
+	var node_dictionary = graph_inst.build_graph(gene.nodes["output"][0].get_layer(), gene.nodes, gene.connections)
+	graph_inst.set_connected_genome(gene)
+	
+	# Nachdem alle Layer gebaut sind, Verbinde die entsprechenden Nodes mit Pfeilen:
+	for con_key in gene.connections.keys():
+		if gene.disabled_connections.find(con_key) == -1:
+			var orig_id: int		= gene.connections[con_key].get_origin()
+			var targ_id: int		= gene.connections[con_key].get_target()
+			var orig_node: Control 	= node_dictionary[orig_id]
+			var targ_node: Control 	= node_dictionary[targ_id]
+			var weight: float		= gene.connections[con_key].get_weight()
+			var arrow_inst = arrow_drawer.instantiate()
+			graph_root.add_child(arrow_inst)
+			arrow_inst.set_draw_params(orig_node, targ_node, weight)
 
 
 func _on_root_level_built(x_coord: float, y_coord: float) -> void:

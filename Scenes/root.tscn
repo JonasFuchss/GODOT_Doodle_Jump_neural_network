@@ -61,13 +61,7 @@ offset_bottom = 47.0
 text = "0"
 label_settings = SubResource("LabelSettings_hetm1")
 
-[node name="graph_root" type="Control" parent="Camera2D"]
-layout_mode = 3
-anchors_preset = 0
-offset_left = -160.0
-offset_top = -256.0
-offset_right = 160.0
-offset_bottom = 256.0
+[node name="graph_root" type="CanvasLayer" parent="."]
 
 [connection signal="level_built" from="." to="nn_trainer" method="_on_root_level_built"]
 [connection signal="create_doodle" from="nn_trainer" to="." method="_on_nn_trainer_create_doodle"]

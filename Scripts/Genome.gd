@@ -252,18 +252,19 @@ func mutate(current_max_innov_number: int, mutation_tracker: Dictionary) -> Arra
 	if randf() <= 0.8:
 		# Mutation A.1, Wahrscheinlichkeit 90%
 		if randf() <= 0.9:
-			var con_id = connections.keys().pick_random()
+			var con_id = enabled_connections.pick_random()
 			var old_weight = connections[con_id].get_weight()
 			var new_weight = old_weight + randf_range(-0.3, 0.3)
-			if new_weight < 0.0:
-				connections[con_id].set_weight(0.0)
-				disable_connection(con_id)
+			if new_weight < -1.0:
+				connections[con_id].set_weight(-1.0)
+			elif new_weight > 1.0:
+				connections[con_id].set_weight(1.0)
 			else:
 				connections[con_id].set_weight(new_weight)
 		# Mutation A.2, Wahrscheinlichkeit 10%
 		else:
-			var con_id = connections.keys().pick_random()
-			var new_weight = randf()
+			var con_id = enabled_connections.pick_random()
+			var new_weight = randf_range(-1.0,1.0)
 			connections[con_id].set_weight(new_weight)
 			
 	# Mutation B, Wahrscheinlichkeit 3% & nur falls es nicht-existierende Connections gibt
