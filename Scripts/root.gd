@@ -6,6 +6,7 @@ var platformCount = 5
 var platforms = []
 var scrollSpeed = 0.05
 var camera: Camera2D
+var seed = 5
 
 @onready var width := get_viewport_rect().size.x
 @onready var height := get_viewport_rect().size.y
@@ -23,7 +24,7 @@ func _ready()-> void:
 	
 	# Für immer gleichbleibende Plattformen und Startpositionen wird der Seed immer
 	# auf 1 gesetzt, nach dem Erstellen dann aber wieder zufällig.
-	seed(1)
+	seed(seed)
 	
 	var x_player_pos = rand_x()
 	var y_player_pos = threshold
@@ -79,9 +80,7 @@ func _on_doodle_highest_jump(height_y):
 func _on_platform_out_of_bounds(emitting_platform: CharacterBody2D):
 	platforms.pop_front()
 	emitting_platform.queue_free()
-	seed(1)
 	createPlatform(rand_x(), camera.position.y - get_viewport_rect().size.y / 2)
-	randomize()
 
 
 func _on_nn_trainer_need_new_level(generation_number) -> void:
@@ -93,7 +92,7 @@ func _on_nn_trainer_need_new_level(generation_number) -> void:
 		p.queue_free()
 	platforms.clear()
 	
-	seed(1)
+	seed(seed)
 	
 	var x_player_pos = rand_x()
 	var y_player_pos = threshold

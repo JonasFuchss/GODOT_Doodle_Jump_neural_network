@@ -8,6 +8,8 @@ var generation_count: int = 0
 var pop_count: int = 150
 var current_pops: int = 0
 var spawn_coord: Array = []
+var species_threshold = 3.0
+var target_species_count = 5
 
 var current_record_height: float = 1
 var this_gen_record_height: float = 1
@@ -119,33 +121,32 @@ func create_generation() -> void:
 			
 			# Wenn Gen 0, erstelle Gene mit Initialwerten
 			# Anfängliche Genom-Struktur, in der ersten Generation bei allen gleich.
-			# Bei Erstellung der ersten Generation passieren erste Mutationen
-			if generation_count == 0:
-				gene = Genome.new(
-					{
-						"input": [
-							Genome_Node.new(0, 0, 0.0),
-							Genome_Node.new(1, 0, 0.0),
-							Genome_Node.new(2, 0, 0.0),
-							Genome_Node.new(3, 0, 0.0)
-						],
-						"hidden": [],
-						"output": [Genome_Node.new(4, 1, 0.0)]
-					},
-					{
-						0: Genome_Connection.new(0, 4, 0.0),
-						1: Genome_Connection.new(1, 4, 0.0),
-						2: Genome_Connection.new(2, 4, 0.0),
-						3: Genome_Connection.new(3, 4, 0.0)
-					},
-					[0,1],
-					[],
-					[]
-				)
-				
-				var mutate_tuple = gene.mutate(innovation_counter, mutation_tracker)
-				innovation_counter = mutate_tuple[0]
-				mutation_tracker = mutate_tuple[1]
+		# Bei Erstellung der ersten Generation passieren erste Mutationen
+			gene = Genome.new(
+				{
+					"input": [
+						Genome_Node.new(0, 0, 0.0),
+						Genome_Node.new(1, 0, 0.0),
+						Genome_Node.new(2, 0, 0.0),
+						Genome_Node.new(3, 0, 0.0)
+					],
+					"hidden": [],
+					"output": [Genome_Node.new(4, 1, 0.0)]
+				},
+				{
+					0: Genome_Connection.new(0, 4, 0.0),
+					1: Genome_Connection.new(1, 4, 0.0),
+					2: Genome_Connection.new(2, 4, 0.0),
+					3: Genome_Connection.new(3, 4, 0.0)
+				},
+				[0,1],
+				[],
+				[]
+			)
+			
+			var mutate_tuple = gene.mutate(innovation_counter, mutation_tracker)
+			innovation_counter = mutate_tuple[0]
+			mutation_tracker = mutate_tuple[1]
 			current_pops += 1
 			create_doodle.emit(Doodle, spawn_coord[0], spawn_coord[1], gene)
 	# Zurücksetzen des generations-spezifischen mutations-trackers & Scores der letzten Runde
@@ -205,7 +206,6 @@ func spezify(s_and_g) -> Array[Dictionary]:
 		...
 	]
 	"""
-	print("specifying...")
 	
 	var calc_delta = func calc_compatibility(i: Genome, j: Genome) -> float:
 		var delta: float
@@ -263,8 +263,14 @@ func spezify(s_and_g) -> Array[Dictionary]:
 		delta = e/n+d/n+0.3*w
 		
 		return delta
-	var species_threshold = 1.0
+
 	var species_dup = species.duplicate(true)
+	
+	# Damit nicht die alten & neuen Genome gleichzeitig in der Spezies
+	# sind, werden die alten gelöscht. Der Representant bleiben vor-
+	# handen, da sie Klone sind.
+	for sp: Dictionary in species_dup:
+		sp["genomes"].clear()
 	
 	# Spezieszuordnung jedes Genoms anhand eines zufälligen Repräsentanten:
 	for entry in s_and_g:
@@ -272,18 +278,27 @@ func spezify(s_and_g) -> Array[Dictionary]:
 		var fitness: int = entry["score"]
 		var has_species: bool = false
 		
-
 		for sp: Dictionary in species_dup:
 			var representant: Genome = sp["representant"]
+			
 			if calc_delta.call(genome, representant) < species_threshold:
 				sp["genomes"].append(genome)
 				sp["raw_scores"].append(fitness)
 				has_species = true
+				break
+			
+		if has_species:
+			continue
 		
 		# Wenn keine passende Spezies gefunden wurde (oder noch keine existieren),
 		# erstelle eine neue
-		if not has_species:
-			species_dup.append({"representant": genome, "genomes":[genome], "raw_scores": [fitness]})
+		species_dup.append({"representant": genome, "genomes":[genome], "raw_scores": [fitness]})
+	
+	# Lösche alle Spezies, die keine Population haben:
+	# Iteriere rückwärts über alle einträge, damit kein Keyerror vorkommt
+	for sp_index in range(len(species_dup) - 1, -1, -1):
+		if species_dup[sp_index]["genomes"].is_empty():
+			species_dup.remove_at(sp_index)
 	
 	# Errechne für jede Spezies einmal die angepassten scores ...
 	var fitness_of_all_species = 0
@@ -358,6 +373,14 @@ func spezify(s_and_g) -> Array[Dictionary]:
 	#	75% der restlichen Plätze: 2 zufällige Eltern -> Ein Kind durch Crossover
 	#	verbleibende Plätze: Mutation ohne Crossover
 	for sp in species_dup:
+		
+		# Überspringe und lösche diese species, falls sie sowieso keine 
+		# Nachkommen zeugen würde
+		if sp["offspring_count"] == 0:
+			var index = species_dup.find(sp)
+			species_dup.remove_at(index)
+			continue
+		
 		# Temporäres Spezies-Dict für die Genome der neuen Generation
 		var new_gen_species: Dictionary = {
 			"representant": null,
@@ -422,19 +445,21 @@ func spezify(s_and_g) -> Array[Dictionary]:
 					if genome_2.connections.has(con):
 						if randi_range(1,2) == 1:
 							new_connections[con] = genome_1.connections[con].clone()
-							if genome_1.enabled_connections.find(con) == -1:
+							# Wenn ein Gen im Elternteil Disabled ist, hat es 25% Chance auch 
+							# im Kind disabled zu sein.
+							if genome_1.enabled_connections.find(con) == -1 and randf() < 0.25:
 								new_disabled_connections.append(con)
 							else:
 								new_enabled_connections.append(con)
 						else:
 							new_connections[con] = genome_2.connections[con].clone()
-							if genome_2.enabled_connections.find(con) == -1:
+							if genome_2.enabled_connections.find(con) == -1 and randf() < 0.25:
 								new_disabled_connections.append(con)
 							else:
 								new_enabled_connections.append(con)
 					else:
 						new_connections[con] = genome_1.connections[con].clone()
-						if genome_1.enabled_connections.find(con) == -1:
+						if genome_1.enabled_connections.find(con) == -1 and randf() < 0.25:
 							new_disabled_connections.append(con)
 						else:
 							new_enabled_connections.append(con)
@@ -445,19 +470,19 @@ func spezify(s_and_g) -> Array[Dictionary]:
 					if genome_1.connections.has(con):
 						if randi_range(1,2) == 1:
 							new_connections[con] = genome_1.connections[con].clone()
-							if genome_1.enabled_connections.find(con) == -1:
+							if genome_1.enabled_connections.find(con) == -1 and randf() < 0.25:
 								new_disabled_connections.append(con)
 							else:
 								new_enabled_connections.append(con)
 						else:
 							new_connections[con] = genome_2.connections[con].clone()
-							if genome_2.enabled_connections.find(con) == -1:
+							if genome_2.enabled_connections.find(con) == -1 and randf() < 0.25:
 								new_disabled_connections.append(con)
 							else:
 								new_enabled_connections.append(con)
 					else:
 						new_connections[con] = genome_2.connections[con].clone()
-						if genome_2.enabled_connections.find(con) == -1:
+						if genome_2.enabled_connections.find(con) == -1 and randf() < 0.25:
 							new_disabled_connections.append(con)
 						else:
 							new_enabled_connections.append(con)
@@ -473,9 +498,9 @@ func spezify(s_and_g) -> Array[Dictionary]:
 		for i in range(sp["offspring_count"]):
 			# suche ein random Genom zu klonen raus (darf NICHT der champion
 			# sein) und mutiere es:
-			var index = range(len(sp["genomes"])-1).pick_random()
+			var index = randi_range(0, len(sp["genomes"])-1)
 			while index == champion_index:
-				index = range(len(sp["genomes"])-1).pick_random()
+				index = randi_range(0, len(sp["genomes"])-1)
 			var cloning_genome: Genome = sp["genomes"][index]
 			var new_clone: Genome = cloning_genome.clone()
 			
@@ -486,11 +511,22 @@ func spezify(s_and_g) -> Array[Dictionary]:
 			new_gen_species["genomes"].append(new_clone)
 			
 		# suche zufällig einen neuen Repräsentanten aus
-		new_gen_species["representant"] = new_gen_species["genomes"].pick_random()
+		new_gen_species["representant"] = new_gen_species["genomes"].pick_random().clone()
 		
 		# ... und ersetze die alte Spezies durch die neue
 		var index = species_dup.find(sp)
 		species_dup[index] = new_gen_species
+	
+	# Wenn die Anzahl an erstellten Spezies signifikant GERINGER (-20%) ist als die Zielanzahl an
+	# Spezies, verringere den spezies-bildungs-threshold um 0.5
+	# Genauso, wenn die Anzahl höher ist.
+	var spez_count = len(species_dup)
+	if spez_count < int(target_species_count * 0.8):
+		species_threshold -= 0.5
+	elif spez_count > int(target_species_count * 1.2):
+		species_threshold += 0.5
+	
+	print("Anzahl an Spezies: " + str(spez_count) + ", daher neues Threshold: " + str(species_threshold))
 	
 	return species_dup
 
@@ -535,14 +571,14 @@ func _on_doodle_death_by_falling(genome: Genome, score: float) -> void:
 	
 	if rounded_score < this_gen_record_height:
 		this_gen_record_height = rounded_score
+		# und male das aktuell beste Genom
+		clear_nodes_and_arrows()
+		paint_nodes_and_arrows(genome)
 	
 	# Hat der doodle einen neuen Highscore aufgestellt? Wenn ja, speichere den Rekord!
 	if this_gen_record_height < current_record_height:
 		print("-----------\nnew record: ", round(this_gen_record_height), "\n-----------")
 		current_record_height = this_gen_record_height
-		# und male das aktuell beste Genom
-		clear_nodes_and_arrows()
-		paint_nodes_and_arrows(genome)
 		
 	
 	# Generation gestorben. Alle runtergefallen.
