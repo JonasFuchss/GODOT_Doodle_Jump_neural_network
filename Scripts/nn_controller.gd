@@ -41,7 +41,7 @@ func get_vector_to_next_platform() -> Vector2:
 
 
 
-func decide_dir(vector_to_next_platform: Vector2) -> float:
+func decide_dir(vector_to_next_platform: Vector2, dist_left_border: float, dist_right_border: float) -> float:
 	"""
 	Entscheidet, in welche Richtung das neuronale Netz den Doodle
 	als nächstes steuern wird. Dies geschieht anhand der übergebenen x-
@@ -60,7 +60,11 @@ func decide_dir(vector_to_next_platform: Vector2) -> float:
 
 
 func _process(delta: float) -> void:
-	dir = decide_dir(get_vector_to_next_platform())
+	dir = decide_dir(get_vector_to_next_platform(), -position.x, get_viewport_rect().size.x - position.x)
+	if position.x < 0:
+		position.x = get_viewport_rect().size.x
+	if position.x > get_viewport_rect().size.x:
+		position.x = 0
 	send_direction.emit(dir)
 	
 	# Check, ob der Doodle sich unterhalb des Viewports befindet.

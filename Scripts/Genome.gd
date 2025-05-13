@@ -102,6 +102,7 @@ func clone() -> Genome:
 	new_genome.incoming_connections = self.incoming_connections.duplicate(true)
 	return new_genome
 
+
 func get_innovation_numbers() -> Array:
 	"""Gibt ein (sortiertes) Array mit allen Innovationsnummern der Connections zurück."""
 	var inno_nums: Array = connections.keys()
