@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3 uid="uid://dncihbjslk21a"]
+
+[ext_resource type="Texture2D" uid="uid://cfloy28sg0gvv" path="res://assets/node.png" id="1_pmgmv"]
+
+[node name="node" type="TextureRect"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -25.0
+offset_top = -25.0
+offset_right = 25.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+texture = ExtResource("1_pmgmv")
+expand_mode = 1
+stretch_mode = 5

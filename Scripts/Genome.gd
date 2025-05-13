@@ -98,7 +98,13 @@ func _init(_nodes: Dictionary, _connections: Dictionary, _enabled_connections: A
 
 func clone() -> Genome:
 	"""Gibt eine tiefe Kopie des aktuellen Genoms zurück."""
-	var new_genome = Genome.new(self.nodes.duplicate(true), self.connections.duplicate(true), self.enabled_connections.duplicate(true), self.disabled_connections.duplicate(true), self.missing_connections.duplicate(true))
+	var new_genome = Genome.new(
+		self.nodes.duplicate(true),
+		self.connections.duplicate(true), 
+		self.enabled_connections.duplicate(true), 
+		self.disabled_connections.duplicate(true), 
+		self.missing_connections.duplicate(true)
+	)
 	new_genome.incoming_connections = self.incoming_connections.duplicate(true)
 	return new_genome
 
@@ -200,19 +206,19 @@ func get_node_by_id(node_id):
 				return node
 
 func get_nodes() -> Dictionary:
-	return nodes
+	return nodes.duplicate()
 
 func get_connections() -> Dictionary:
-	return connections
+	return connections.duplicate()
 
 func get_disabled_connections() -> Array:
-	return disabled_connections
+	return disabled_connections.duplicate()
 
 func get_enabled_connections() -> Array:
-	return enabled_connections
+	return enabled_connections.duplicate()
 
 func get_missing_connections() -> Array:
-	return missing_connections
+	return missing_connections.duplicate()
 
 func add_layer_and_shift_right(new_layer_number) -> void:
 	"""
