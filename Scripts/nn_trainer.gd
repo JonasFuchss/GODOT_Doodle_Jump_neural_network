@@ -91,6 +91,8 @@ species = [
 ]
 """
 
+
+
 var highscore_label: Label
 var Doodle = preload("res://Scenes/doodle.tscn")
 
@@ -121,7 +123,7 @@ func create_generation() -> void:
 			
 			# Wenn Gen 0, erstelle Gene mit Initialwerten
 			# Anfängliche Genom-Struktur, in der ersten Generation bei allen gleich.
-		# Bei Erstellung der ersten Generation passieren erste Mutationen
+			# Bei Erstellung der ersten Generation passieren erste Mutationen
 			gene = Genome.new(
 				{
 					"input": [
@@ -168,7 +170,7 @@ func log_generations_best() -> void:
 	#_write_json("res://highscores/best_per_generation.txt", best_from_each_gen)
 
 
-func spezify(s_and_g) -> Array[Dictionary]:
+func spezify(s_and_g: Array[Dictionary]) -> Array[Dictionary]:
 	"""
 	Teilt die übergebenen genome in Spezies auf.
 	Allgemeine Formel:
@@ -258,7 +260,10 @@ func spezify(s_and_g) -> Array[Dictionary]:
 		d = d-e
 		
 		# avg Weight-Difference aller matching Genes:
-		w = acum_difs / matching_gene_count
+		if matching_gene_count > 0:
+			w = acum_difs / matching_gene_count
+		else:
+			w = 0
 		
 		delta = e/n+d/n+0.3*w
 		
@@ -268,7 +273,7 @@ func spezify(s_and_g) -> Array[Dictionary]:
 	
 	# Damit nicht die alten & neuen Genome gleichzeitig in der Spezies
 	# sind, werden die alten gelöscht. Der Representant bleiben vor-
-	# handen, da sie Klone sind.
+	# handen, da er ein Klon ist.
 	for sp: Dictionary in species_dup:
 		sp["genomes"].clear()
 	
@@ -292,13 +297,34 @@ func spezify(s_and_g) -> Array[Dictionary]:
 		
 		# Wenn keine passende Spezies gefunden wurde (oder noch keine existieren),
 		# erstelle eine neue
-		species_dup.append({"representant": genome, "genomes":[genome], "raw_scores": [fitness]})
+		species_dup.append({
+			"representant": genome, 
+			"genomes":[genome], 
+			"raw_scores": [fitness],
+			"highscore": -1,
+			"gens_since_improvement": 0
+		})
 	
 	# Lösche alle Spezies, die keine Population haben:
 	# Iteriere rückwärts über alle einträge, damit kein Keyerror vorkommt
 	for sp_index in range(len(species_dup) - 1, -1, -1):
 		if species_dup[sp_index]["genomes"].is_empty():
 			species_dup.remove_at(sp_index)
+	
+	# Suche für jede Spezies den Highscore und setze gens_since_improvement auf
+	# 0, falls sie einen neuen Highscore aufgestellt haben, sonst +=1
+	for sp in species_dup:
+		# Suche den höchsten raw_score in der Spezies:
+		var new_best: bool = false
+		for score in sp["raw_scores"]:
+			if score > sp["highscore"]:
+				sp["highscore"] = score
+				new_best = true
+		
+		if new_best:
+			sp["gens_since_improvement"] = 0
+		else:
+			sp["gens_since_improvement"] += 1
 	
 	# Errechne für jede Spezies einmal die angepassten scores ...
 	var fitness_of_all_species = 0
@@ -308,7 +334,7 @@ func spezify(s_and_g) -> Array[Dictionary]:
 		var gesamt_score_of_species = 0
 		
 		for index in range(len(sp["raw_scores"])):
-			var adj_score = sp["raw_scores"][index] / popcount
+			var adj_score = float(sp["raw_scores"][index]) / float(popcount)
 			sp["adjusted_scores"].append(adj_score)
 			gesamt_score_of_species += adj_score
 		
@@ -316,6 +342,58 @@ func spezify(s_and_g) -> Array[Dictionary]:
 	
 	# ... und die Anzahl an Kindern, die die Spezies zeugen darf
 	for sp in species_dup:
+		
+		# Wenn die Spezies sich über 5 Generationen nicht verbessert hat, darf
+		# sie keine Kinder zeugen und wird komplett abgetötet:
+		if sp["gens_since_improvement"] >= 5:
+			var index = species_dup.find(sp)
+			print("HHHHHH\nLösche Spezies " + str(index) + ", da sie 5x in Folge schlecht performt hat.\nHHHHHH")
+			species_dup.remove_at(index)
+			
+			# Falls der seltene Fall eintritt, dass hierdurch die einzige Spezies abgetötet
+			# wurde, erstell eine komplett neue Spezies mit dem Initalblueprint:
+			if species_dup.is_empty():
+				var tmp_species_dict = {
+					"representant": null,
+					"genomes": [],
+					"raw_scores": [],
+					"adjusted_scores": [],
+					"offspring_count": 150,
+					"highscore": 0.0,
+					"gens_since_improvement": 0
+				}
+				print("Keine Spezies zum fortpflanzen mehr vorhanden, initiere daher eine komplett neue.")
+				for pop in pop_count:
+					var gene = Genome.new(
+						{
+							"input": [
+								Genome_Node.new(0, 0, 0.0),
+								Genome_Node.new(1, 0, 0.0),
+								Genome_Node.new(2, 0, 0.0),
+								Genome_Node.new(3, 0, 0.0)
+							],
+							"hidden": [],
+							"output": [Genome_Node.new(4, 1, 0.0)]
+						},
+						{
+							0: Genome_Connection.new(0, 4, 0.0),
+							1: Genome_Connection.new(1, 4, 0.0),
+							2: Genome_Connection.new(2, 4, 0.0),
+							3: Genome_Connection.new(3, 4, 0.0)
+						},
+						[0,1],
+						[],
+						[]
+					)
+					gene.mutate(innovation_counter, mutation_tracker)
+					tmp_species_dict["genomes"].append(gene)
+					tmp_species_dict["raw_scores"].append(0.0)
+					tmp_species_dict["adjusted_scores"].append(0.0)
+				
+				species_dup.append(tmp_species_dict)
+				continue
+			continue
+		
 		var gesamt_score_of_species = 0
 		for adj_score in sp["adjusted_scores"]:
 			gesamt_score_of_species += adj_score
@@ -358,7 +436,7 @@ func spezify(s_and_g) -> Array[Dictionary]:
 			elim_count = floor(sp["genomes"].size() * 0.5)
 		# finde i mal das schwächste Genom und lösche alle dazugehörigen Daten
 		for i in range(elim_count):
-			var weakest_score: int = INF
+			var weakest_score = INF
 			var weakest_index: int
 			for adj_score_index in range(len(sp["adjusted_scores"])):
 				if sp["adjusted_scores"][adj_score_index] < weakest_score:
@@ -387,7 +465,9 @@ func spezify(s_and_g) -> Array[Dictionary]:
 			"genomes": [],
 			"raw_scores": [],
 			"adjusted_scores": [],
-			"offspring_count": 0
+			"offspring_count": 0,
+			"highscore": sp["highscore"],
+			"gens_since_improvement": sp["gens_since_improvement"]
 		}
 		
 		var champion_index: int
@@ -523,10 +603,17 @@ func spezify(s_and_g) -> Array[Dictionary]:
 	var spez_count = len(species_dup)
 	if spez_count < int(target_species_count * 0.9):
 		species_threshold -= 0.2
+		print("Anzahl an Spezies: " + str(spez_count) + ", daher neues Threshold: " + str(species_threshold))
 	elif spez_count > int(target_species_count * 1.1):
 		species_threshold += 0.2
+		print("Anzahl an Spezies: " + str(spez_count) + ", daher neues Threshold: " + str(species_threshold))
 	
-	print("Anzahl an Spezies: " + str(spez_count) + ", daher neues Threshold: " + str(species_threshold))
+	var doodles: int = 0
+	for sp in species_dup:
+		for g in range(len(sp["genomes"])):
+			doodles += 1
+	
+	print("habe " + str(doodles) + " neu doodles erstellt, in " + str(spez_count) + " Spezies.")
 	
 	return species_dup
 
