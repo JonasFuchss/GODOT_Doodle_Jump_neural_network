@@ -209,10 +209,10 @@ func spezify(s_and_g) -> Array[Dictionary]:
 	
 	var calc_delta = func calc_compatibility(i: Genome, j: Genome) -> float:
 		var delta: float
-		var e: int = 0		# excess_count
-		var d: int = 0		# disjoint_count
-		var w: float = 0	# avg_weight_dif
-		var n: int = 1		# size_of_largest_genome
+		var e: float = 0		# excess_count
+		var d: float = 0		# disjoint_count
+		var w: float = 0		# avg_weight_dif
+		var n: float = 1		# size_of_largest_genome
 		
 		var con_keys_i: Array = i.connections.keys()
 		var con_keys_j: Array = j.connections.keys()
@@ -517,14 +517,14 @@ func spezify(s_and_g) -> Array[Dictionary]:
 		var index = species_dup.find(sp)
 		species_dup[index] = new_gen_species
 	
-	# Wenn die Anzahl an erstellten Spezies signifikant GERINGER (-20%) ist als die Zielanzahl an
+	# Wenn die Anzahl an erstellten Spezies signifikant GERINGER (-10%) ist als die Zielanzahl an
 	# Spezies, verringere den spezies-bildungs-threshold um 0.5
 	# Genauso, wenn die Anzahl höher ist.
 	var spez_count = len(species_dup)
-	if spez_count < int(target_species_count * 0.8):
-		species_threshold -= 0.5
-	elif spez_count > int(target_species_count * 1.2):
-		species_threshold += 0.5
+	if spez_count < int(target_species_count * 0.9):
+		species_threshold -= 0.2
+	elif spez_count > int(target_species_count * 1.1):
+		species_threshold += 0.2
 	
 	print("Anzahl an Spezies: " + str(spez_count) + ", daher neues Threshold: " + str(species_threshold))
 	

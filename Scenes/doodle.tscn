@@ -32,5 +32,6 @@ label_settings = SubResource("LabelSettings_kt8r7")
 [node name="nn_controller" type="Node2D" parent="."]
 script = ExtResource("3_ruwur")
 
+[connection signal="touched_platform" from="." to="nn_controller" method="_on_doodle_touched_platform"]
 [connection signal="send_direction" from="nn_controller" to="." method="_on_nn_controller_send_direction"]
 [connection signal="send_genome" from="nn_controller" to="." method="_on_nn_controller_send_genome"]

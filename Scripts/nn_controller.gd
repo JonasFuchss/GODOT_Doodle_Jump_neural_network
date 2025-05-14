@@ -40,8 +40,21 @@ func get_vector_to_next_platform() -> Vector2:
 	return to_next
 
 
+func get_vector_to_scnd_next_platform() -> Vector2:
+	var to_next: Vector2
+	var stack: Array = platforms.get_children()
+	
+	if stack[1] != forbidden_platform:
+		# zweites Element ist immer die Platform, auf die der Doodle springen muss,
+		# wenn die erste PLatform nicht mehr existiert (also wenn der Doodle
+		# im Apex seinen Sprungs ist und die erste Platform out of bounds geht
+		to_next = stack[2].global_position - self.global_position
+	else:
+		to_next = stack[3].global_position - self.global_position
+	return to_next
 
-func decide_dir(vector_to_next_platform: Vector2, dist_left_border: float, dist_right_border: float) -> float:
+
+func decide_dir(vector_to_next_platform: Vector2, vector_to_scnd_next_platform: Vector2) -> float:
 	"""
 	Entscheidet, in welche Richtung das neuronale Netz den Doodle
 	als nächstes steuern wird. Dies geschieht anhand der übergebenen x-
@@ -54,13 +67,15 @@ func decide_dir(vector_to_next_platform: Vector2, dist_left_border: float, dist_
 	"""
 	var distance_x = vector_to_next_platform.x
 	var distance_y = vector_to_next_platform.y
+	var distance_2_x = vector_to_scnd_next_platform.x
+	var distance_2_y = vector_to_scnd_next_platform.y
 	
-	return self.genome.feed_forward({0: distance_x, 1: distance_y})[0]
+	return self.genome.feed_forward({0: distance_x, 1: distance_y, 2: distance_2_x, 3: distance_2_y})[0]
 
 
 
 func _process(delta: float) -> void:
-	dir = decide_dir(get_vector_to_next_platform(), -position.x, get_viewport_rect().size.x - position.x)
+	dir = decide_dir(get_vector_to_next_platform(), get_vector_to_scnd_next_platform())
 	if position.x < 0:
 		position.x = get_viewport_rect().size.x
 	if position.x > get_viewport_rect().size.x:
