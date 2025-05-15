@@ -340,14 +340,12 @@ func spezify(s_and_g: Array[Dictionary]) -> Array[Dictionary]:
 		
 		fitness_of_all_species += gesamt_score_of_species
 	
-	# ... und die Anzahl an Kindern, die die Spezies zeugen darf
+	# Wenn die Spezies sich über 5 Generationen nicht verbessert hat, darf
+	# sie keine Kinder zeugen und wird komplett abgetötet:
 	for sp in species_dup:
-		
-		# Wenn die Spezies sich über 5 Generationen nicht verbessert hat, darf
-		# sie keine Kinder zeugen und wird komplett abgetötet:
 		if sp["gens_since_improvement"] >= 5:
 			var index = species_dup.find(sp)
-			print("HHHHHH\nLösche Spezies " + str(index) + ", da sie 5x in Folge schlecht performt hat.\nHHHHHH")
+			print("\n----- Lösche Spezies " + str(index) + ", da sie 5x in Folge schlecht performt hat.\n")
 			species_dup.remove_at(index)
 			
 			# Falls der seltene Fall eintritt, dass hierdurch die einzige Spezies abgetötet
@@ -391,9 +389,9 @@ func spezify(s_and_g: Array[Dictionary]) -> Array[Dictionary]:
 					tmp_species_dict["adjusted_scores"].append(0.0)
 				
 				species_dup.append(tmp_species_dict)
-				continue
-			continue
-		
+
+	# ... und errechne die Anzahl an Kindern, die die Spezies zeugen darf
+	for sp in species_dup:
 		var gesamt_score_of_species = 0
 		for adj_score in sp["adjusted_scores"]:
 			gesamt_score_of_species += adj_score
@@ -406,7 +404,8 @@ func spezify(s_and_g: Array[Dictionary]) -> Array[Dictionary]:
 		total_assigned += sp["offspring_count"]
 
 	var diff = pop_count - total_assigned
-	# Korrigiere die Differenz, indem sie auf die größte Spezies verteilt wird
+	# Korrigiere die Differenz, indem sie auf die insgesamt stärkste
+	# Spezies verteilt wird
 	while diff != 0:
 		var best_index = 0
 		var max_score = -INF
@@ -452,11 +451,8 @@ func spezify(s_and_g: Array[Dictionary]) -> Array[Dictionary]:
 	#	verbleibende Plätze: Mutation ohne Crossover
 	for sp in species_dup:
 		
-		# Überspringe und lösche diese species, falls sie sowieso keine 
-		# Nachkommen zeugen würde
+		# überspringe, falls offspring == 0:
 		if sp["offspring_count"] == 0:
-			var index = species_dup.find(sp)
-			species_dup.remove_at(index)
 			continue
 		
 		# Temporäres Spezies-Dict für die Genome der neuen Generation
@@ -465,7 +461,7 @@ func spezify(s_and_g: Array[Dictionary]) -> Array[Dictionary]:
 			"genomes": [],
 			"raw_scores": [],
 			"adjusted_scores": [],
-			"offspring_count": 0,
+			"offspring_count": -1, # Damit sie hinterher nicht gelöscht werden
 			"highscore": sp["highscore"],
 			"gens_since_improvement": sp["gens_since_improvement"]
 		}
@@ -596,10 +592,17 @@ func spezify(s_and_g: Array[Dictionary]) -> Array[Dictionary]:
 		# ... und ersetze die alte Spezies durch die neue
 		var index = species_dup.find(sp)
 		species_dup[index] = new_gen_species
+		
+	# Lösche alle Spezies, welche keine Nachkommen gezeugt haben und noch übrig sind
+	for sp in species_dup:
+		if sp["offspring_count"] == 0:
+			var index = species_dup.find(sp)
+			species_dup.remove_at(index)
+			continue
 	
-	# Wenn die Anzahl an erstellten Spezies signifikant GERINGER (-10%) ist als die Zielanzahl an
-	# Spezies, verringere den spezies-bildungs-threshold um 0.5
-	# Genauso, wenn die Anzahl höher ist.
+	# Wenn die Anzahl an verbleibenden Spezies signifikant GERINGER (-10%)
+	# ist als die Zielanzahl an Spezies, verringere den spezies-bildungs-
+	# threshold um 0.5. Genauso, wenn die Anzahl höher ist.
 	var spez_count = len(species_dup)
 	if spez_count < int(target_species_count * 0.9):
 		species_threshold -= 0.2
