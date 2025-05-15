@@ -1,8 +1,8 @@
 extends CharacterBody2D
 
 # --- doodles neuronen ---
-# Inputneuronen: eigene Position, Position der nächsten Plattform
-# Outputneuronen: left_force, right_force
+# Inputneuronen: 4: Position (x,y) der nächsten und übernächsten Plattform
+# Outputneuronen: 1: left_/right_force
 
 # in jedem Frame errechnet doodle den left_force/right_force, welcher besagt,
 # mit welcher force doodle sich nach rechts- oder links bewegt.
