@@ -125,7 +125,7 @@ func create_generation() -> void:
 			# Anfängliche Genom-Struktur, in der ersten Generation bei allen gleich.
 			# Bei Erstellung der ersten Generation passieren erste Mutationen
 			gene = Genome.new(
-				{
+				{ ## Nodes
 					"input": [
 						Genome_Node.new(0, 0, 0.0),
 						Genome_Node.new(1, 0, 0.0),
@@ -135,15 +135,15 @@ func create_generation() -> void:
 					"hidden": [],
 					"output": [Genome_Node.new(4, 1, 0.0)]
 				},
-				{
+				{ ## Connections
 					0: Genome_Connection.new(0, 4, 0.0),
 					1: Genome_Connection.new(1, 4, 0.0),
 					2: Genome_Connection.new(2, 4, 0.0),
 					3: Genome_Connection.new(3, 4, 0.0)
 				},
-				[0,1],
-				[],
-				[]
+				[0,1,2,3], ## angeschaltete Connections
+				[], ## Abgeschaltete Connections (Gegenstück von angeschaltet)
+				[] ## Fehlende Connections
 			)
 			
 			var mutate_tuple = gene.mutate(innovation_counter, mutation_tracker)
@@ -379,7 +379,7 @@ func spezify(s_and_g: Array[Dictionary]) -> Array[Dictionary]:
 							2: Genome_Connection.new(2, 4, 0.0),
 							3: Genome_Connection.new(3, 4, 0.0)
 						},
-						[0,1],
+						[0,1,2,3],
 						[],
 						[]
 					)
@@ -639,11 +639,13 @@ func paint_nodes_and_arrows(gene: Genome):
 			graph_root.add_child(arrow_inst)
 			arrow_inst.set_draw_params(orig_node, targ_node, weight)
 
+
 func clear_nodes_and_arrows() -> void:
 	# Lösche alle vorherigen Graphen und Pfeile
 	var childs = graph_root.get_children()
 	for child: Node in childs:
 		child.free()
+
 
 func _on_root_level_built(x_coord: float, y_coord: float) -> void:
 	spawn_coord = [x_coord, y_coord]
@@ -661,14 +663,14 @@ func _on_doodle_death_by_falling(genome: Genome, score: float) -> void:
 	
 	if rounded_score < this_gen_record_height:
 		this_gen_record_height = rounded_score
-		# und male das aktuell beste Genom
-		clear_nodes_and_arrows()
-		paint_nodes_and_arrows(genome)
 	
 	# Hat der doodle einen neuen Highscore aufgestellt? Wenn ja, speichere den Rekord!
 	if this_gen_record_height < current_record_height:
 		print("-----------\nnew record: ", round(this_gen_record_height), "\n-----------")
 		current_record_height = this_gen_record_height
+		# und male das aktuell beste Genom
+		clear_nodes_and_arrows()
+		paint_nodes_and_arrows(genome)
 		
 	
 	# Generation gestorben. Alle runtergefallen.

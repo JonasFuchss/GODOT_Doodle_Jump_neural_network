@@ -6,9 +6,6 @@ var arrow_color: Color = Color.RED
 var arrow_thickness: float = 3.0
 var arrow_head_size: float = 15.0
 
-func _ready() -> void:
-	var root = get_node("/root/root")
-	#root.connect("new_highscore", _on_root_new_highscore)
 
 func set_draw_params(_origin: Control, _target: Control, _weight: float):
 	origin = _origin
@@ -19,8 +16,8 @@ func set_draw_params(_origin: Control, _target: Control, _weight: float):
 	elif -0.1 < _weight and _weight <= 0.1:
 		## Damit die Arrows bei zu geringem Gewicht nicht "unsichtbar" werden, wird
 		## bei einem weight von -0.1 -> 0.1 eine Standarddicke genommen
-		arrow_thickness = 0.8
-		arrow_head_size = 8.0
+		arrow_thickness = 0.4
+		arrow_head_size = 4.0
 		if _weight < 0.0:
 			## Negative Weights haben eine Blaue Farbe
 			arrow_color = Color.BLUE
@@ -65,10 +62,3 @@ func _draw():
 	var p3 = to_pos - dir * arrow_head_size - ortho * arrow_head_size
 
 	draw_polygon([p1, p2, p3], [arrow_color])
-
-#func _on_root_new_highscore() -> void:
-	## damit die Pfeile mitwandern
-	#queue_redraw()
-
-#func _process(delta):
-	#queue_redraw()  # damit der Pfeil dynamisch mitwandert
