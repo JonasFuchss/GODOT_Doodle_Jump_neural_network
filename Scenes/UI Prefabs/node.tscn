@@ -15,6 +15,7 @@ offset_bottom = 25.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 3
+mouse_filter = 0
 texture = ExtResource("1_pmgmv")
 expand_mode = 1
 stretch_mode = 5

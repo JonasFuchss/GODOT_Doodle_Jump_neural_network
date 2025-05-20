@@ -668,9 +668,6 @@ func _on_doodle_death_by_falling(genome: Genome, score: float) -> void:
 	if this_gen_record_height < current_record_height:
 		print("-----------\nnew record: ", round(this_gen_record_height), "\n-----------")
 		current_record_height = this_gen_record_height
-		# und male das aktuell beste Genom
-		clear_nodes_and_arrows()
-		paint_nodes_and_arrows(genome)
 		
 	
 	# Generation gestorben. Alle runtergefallen.
@@ -683,6 +680,10 @@ func _on_doodle_death_by_falling(genome: Genome, score: float) -> void:
 		need_new_level.emit(generation_count)
 
 
+func _on_button_draw_genome(genome: Genome) -> void:
+	print("drawing Genome")
+	clear_nodes_and_arrows()
+	paint_nodes_and_arrows(genome)
 
 
 

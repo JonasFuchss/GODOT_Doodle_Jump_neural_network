@@ -15,15 +15,18 @@ var vel = Vector2.ZERO
 var highestJump: float = INF
 var label: Label
 var camera: Camera2D
+var gene: Genome
 
 signal new_highest_jump(height_y)
 signal death_by_falling(genome: Genome, score: float)
 signal touched_platform(platform: Object)
+signal draw_genome(genome: Genome)
 
 
 func _ready() -> void:
 	label = $Label
 	camera = get_parent().get_node("/root/root/Camera2D")
+	connect("draw_genome", get_parent()._on_button_draw_genome)
 
 
 func _physics_process(delta:float)->void:
@@ -78,3 +81,8 @@ func _on_nn_controller_send_genome(genome: Genome) -> void:
 	# Trainer weitergeben und Doodle-Instanz für's löschen queuen.
 	death_by_falling.emit(genome, highestJump)
 	queue_free()
+
+
+func _on_button_button_up() -> void:
+	print("pressed")
+	draw_genome.emit(gene)

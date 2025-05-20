@@ -51,6 +51,7 @@ func createPlatform(x, y) -> void:
 func _on_nn_trainer_create_doodle(Doodle: PackedScene, x: float, y: float, gene: Genome):
 	var doodle: CharacterBody2D = Doodle.instantiate()
 	doodle.get_node("nn_controller").genome = gene
+	doodle.gene = gene
 	trainer.add_child(doodle)
 	doodle.translate(Vector2(x, y))
 	doodle.add_to_group("doodles")

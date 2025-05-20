@@ -12,6 +12,8 @@ height = 54.0
 font_color = Color(0.782979, 0.433376, 1.92523e-07, 1)
 
 [node name="doodle" type="CharacterBody2D"]
+top_level = true
+z_index = 3
 collision_layer = 2
 script = ExtResource("1_si4gl")
 
@@ -32,6 +34,22 @@ label_settings = SubResource("LabelSettings_kt8r7")
 [node name="nn_controller" type="Node2D" parent="."]
 script = ExtResource("3_ruwur")
 
+[node name="Button" type="Button" parent="."]
+modulate = Color(0, 0.814255, 0.845436, 1)
+clip_children = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -21.0
+offset_top = -28.0
+offset_right = 30.0
+offset_bottom = 33.0
+grow_horizontal = 2
+grow_vertical = 2
+
 [connection signal="touched_platform" from="." to="nn_controller" method="_on_doodle_touched_platform"]
 [connection signal="send_direction" from="nn_controller" to="." method="_on_nn_controller_send_direction"]
 [connection signal="send_genome" from="nn_controller" to="." method="_on_nn_controller_send_genome"]
+[connection signal="button_up" from="Button" to="." method="_on_button_button_up"]

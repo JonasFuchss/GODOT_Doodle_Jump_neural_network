@@ -12,4 +12,5 @@ offset_right = -20.0
 offset_bottom = -20.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
+mouse_filter = 2
 script = ExtResource("1_oac4d")
