@@ -1,0 +1,49 @@
+[gd_scene load_steps=5 format=3 uid="uid://c7jwsc7owvaws"]
+
+[ext_resource type="Script" path="res://Scenes/main_menu.gd" id="1_40rhs"]
+[ext_resource type="Texture2D" uid="uid://dglm40wl41pkb" path="res://assets/bck.png" id="2_6kde6"]
+[ext_resource type="Texture2D" uid="uid://ck4skdyre142f" path="res://assets/Background_Doodle.png" id="3_mmywf"]
+[ext_resource type="Texture2D" uid="uid://c8yb35o4x0erl" path="res://assets/MainMenuSelection.png" id="4_63hbs"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_40rhs")
+
+[node name="Bck" type="Sprite2D" parent="."]
+position = Vector2(160, 257)
+texture = ExtResource("2_6kde6")
+
+[node name="BackgroundDoodle" type="Sprite2D" parent="."]
+position = Vector2(169, 461)
+scale = Vector2(0.377419, 0.395)
+texture = ExtResource("3_mmywf")
+
+[node name="MainMenuSelection" type="Sprite2D" parent="."]
+position = Vector2(158, 177)
+scale = Vector2(0.493548, 0.461667)
+texture = ExtResource("4_63hbs")
+
+[node name="Train_Button" type="Button" parent="MainMenuSelection"]
+clip_children = 1
+offset_left = -219.0
+offset_top = -264.0
+offset_right = 257.0
+offset_bottom = -91.0
+tooltip_text = "Train the doodles"
+
+[node name="Highscore_Button" type="Button" parent="MainMenuSelection"]
+clip_children = 1
+offset_left = -251.0
+offset_top = -48.0
+offset_right = 278.0
+offset_bottom = 240.0
+tooltip_text = "Show the best Doodles
+of every generation"
+
+[connection signal="pressed" from="MainMenuSelection/Train_Button" to="." method="_on_train_button_pressed"]
+[connection signal="toggled" from="MainMenuSelection/Train_Button" to="." method="_on_train_button_toggled"]
