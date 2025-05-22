@@ -25,7 +25,7 @@ signal draw_genome(genome: Genome)
 
 func _ready() -> void:
 	label = $Label
-	camera = get_parent().get_node("/root/root/Camera2D")
+	camera = get_parent().get_node("/root/Control/root/Camera2D")
 	connect("draw_genome", get_parent()._on_button_draw_genome)
 
 

@@ -610,7 +610,7 @@ func spezify(s_and_g: Array[Dictionary]) -> Array[Dictionary]:
 	# ist als die Zielanzahl an Spezies, verringere den spezies-bildungs-
 	# threshold um 0.5. Genauso, wenn die Anzahl höher ist.
 	var spez_count = len(species_dup)
-	if spez_count < int(target_species_count * 0.9):
+	if spez_count < int(target_species_count * 0.9) and spez_count > 0.2:
 		species_threshold -= 0.2
 		print("Anzahl an Spezies: " + str(spez_count) + ", daher neues Threshold: " + str(species_threshold))
 	elif spez_count > int(target_species_count * 1.1):
