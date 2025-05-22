@@ -84,5 +84,4 @@ func _on_nn_controller_send_genome(genome: Genome) -> void:
 
 
 func _on_button_button_up() -> void:
-	print("pressed")
 	draw_genome.emit(gene)

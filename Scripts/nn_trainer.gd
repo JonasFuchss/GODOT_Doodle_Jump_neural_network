@@ -106,6 +106,11 @@ func _ready() -> void:
 	highscore_label = get_node("/root/root/Camera2D/Header/Highscore")
 	graph_root = get_node("/root/root/graph_root")
 
+func _process(delta: float) -> void:
+	if Input.is_action_just_pressed("right_click"):
+		print("?")
+		clear_nodes_and_arrows()
+
 func create_generation() -> void:
 	print("creating generation")
 	

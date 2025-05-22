@@ -7,7 +7,7 @@ var platforms = []
 var scrollSpeed = 0.05
 var camera: Camera2D
 var platform_rng = RandomNumberGenerator.new()
-var seed = 6
+var seed = 20 # 6 ist ein guter Seed
 
 @onready var width := get_viewport_rect().size.x
 @onready var height := get_viewport_rect().size.y

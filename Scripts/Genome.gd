@@ -311,7 +311,7 @@ func mutate(current_max_innov_number: int, mutation_tracker: Dictionary) -> Arra
 		# lege ein neues an und ändere alle Nodes mit layer >= targetlayer um +1  
 		if target_node_layer - origin_node_layer == 1:
 			add_layer_and_shift_right(new_node_layer)
-		var new_node_id = add_node("hidden", new_node_layer, randf_range(-1.0, 1.0))
+		var new_node_id = add_node("hidden", new_node_layer, 0.0)
 		# Gab es diese Mutation in der Generation schon? Wenn ja nutze ihre
 		# Innovationsnummern, wenn nein logge sie und nehm die nächsten zwei.
 		if mutation_tracker.has(mutation_key):
