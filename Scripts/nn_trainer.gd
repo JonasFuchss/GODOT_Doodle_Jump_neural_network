@@ -103,13 +103,14 @@ signal need_new_level(generation)
 
 func _ready() -> void:
 	print("nn_trainer ready")
-	highscore_label = get_node("/root/root/Camera2D/Header/Highscore")
-	graph_root = get_node("/root/root/graph_root")
+	highscore_label = get_node("/root/Control/root/Camera2D/Header/Highscore")
+	graph_root = get_node("/root/Control/root/graph_root")
 
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("right_click"):
-		print("?")
 		clear_nodes_and_arrows()
+	if Input.is_action_just_pressed("ui_cancel"):
+		get_parent().queue_free()
 
 func create_generation() -> void:
 	print("creating generation")
@@ -677,7 +678,7 @@ func _on_doodle_death_by_falling(genome: Genome, score: float) -> void:
 	
 	# Generation gestorben. Alle runtergefallen.
 	if current_pops == 0:
-		#log_generations_best()
+		log_generations_best()
 		generation_count += 1
 		# setze Rekord zurück
 		this_gen_record_height = 1

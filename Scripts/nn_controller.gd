@@ -22,8 +22,8 @@ signal send_genome(genome: Genome)
 
 
 func _ready() -> void:
-	platforms = get_node("/root/root/Platforms")
-	cam = get_node("/root/root/Camera2D")
+	platforms = get_node("/root/Control/root/Platforms")
+	cam = get_node("/root/Control/root/Camera2D")
 
 
 func get_vector_to_next_platform() -> Vector2:
