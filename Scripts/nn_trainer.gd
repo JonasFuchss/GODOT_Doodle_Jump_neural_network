@@ -8,7 +8,7 @@ var generation_count: int = 0
 var pop_count: int = 150
 var current_pops: int = 0
 var spawn_coord: Array = []
-var species_threshold = 3.0
+var species_threshold = 2.0
 var target_species_count = 5
 
 var current_record_height: float = 1
