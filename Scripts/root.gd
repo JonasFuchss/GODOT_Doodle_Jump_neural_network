@@ -7,7 +7,7 @@ var platforms = []
 var scrollSpeed = 0.05
 var camera: Camera2D
 var platform_rng = RandomNumberGenerator.new()
-var seed = 20 # 6 ist ein guter Seed
+var platform_seed = 20 # 6 ist ein guter Seed
 
 @onready var width := get_viewport_rect().size.x
 @onready var height := get_viewport_rect().size.y
@@ -21,7 +21,7 @@ signal level_built(x_spawn, y_spawn)
 signal new_highscore()
 
 func _ready()-> void:
-	platform_rng.set_seed(seed)
+	platform_rng.set_seed(platform_seed)
 	camera = $Camera2D
 	
 	var x_player_pos = rand_x()
@@ -89,7 +89,7 @@ func _on_nn_trainer_need_new_level(generation_number) -> void:
 		p.queue_free()
 	platforms.clear()
 	
-	platform_rng.set_seed(seed)
+	platform_rng.set_seed(platform_seed)
 	
 	var x_player_pos = rand_x()
 	var y_player_pos = threshold

@@ -5,7 +5,7 @@ var arrow_drawer	= preload("res://Scenes/UI Prefabs/arrow_drawer.tscn")
 var graph_root: CanvasLayer
 
 var generation_count: int = 0
-var pop_count: int = 150
+var pop_count: int = 100
 var current_pops: int = 0
 var spawn_coord: Array = []
 var species_threshold = 2.0
