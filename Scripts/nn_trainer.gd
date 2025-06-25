@@ -5,11 +5,11 @@ var arrow_drawer	= preload("res://Scenes/UI Prefabs/arrow_drawer.tscn")
 var graph_root: CanvasLayer
 
 var generation_count: int = 0
-var pop_count: int = 100
+var pop_count: int = 200
 var current_pops: int = 0
 var spawn_coord: Array = []
 var species_threshold = 2.0
-var target_species_count = 5
+var target_species_count = 7
 
 var current_record_height: float = 1
 var this_gen_record_height: float = 1
@@ -401,7 +401,11 @@ func spezify(s_and_g: Array[Dictionary]) -> Array[Dictionary]:
 		var gesamt_score_of_species = 0
 		for adj_score in sp["adjusted_scores"]:
 			gesamt_score_of_species += adj_score
-		var ct = int((float(gesamt_score_of_species) / float(fitness_of_all_species))*float(pop_count))
+		# falls fitness_of_all_species == 0 ist, muss die Rechnung übersprungen werden,
+		# um Fehler zu vermeiden (0-Division):
+		var ct: int = 0
+		if fitness_of_all_species != 0:
+			ct = int((float(gesamt_score_of_species) / float(fitness_of_all_species))*float(pop_count))
 		sp["offspring_count"] = ct
 	
 	# Stelle sicher, dass die Gesamtzahl an offspring exakt pop_count ist
@@ -608,13 +612,13 @@ func spezify(s_and_g: Array[Dictionary]) -> Array[Dictionary]:
 	
 	# Wenn die Anzahl an verbleibenden Spezies signifikant GERINGER (-10%)
 	# ist als die Zielanzahl an Spezies, verringere den spezies-bildungs-
-	# threshold um 0.5. Genauso, wenn die Anzahl höher ist.
+	# threshold um 0.25. Genauso, wenn die Anzahl höher ist.
 	var spez_count = len(species_dup)
 	if spez_count < int(target_species_count * 0.9) and spez_count > 0.2:
-		species_threshold -= 0.2
+		species_threshold -= 0.25
 		print("Anzahl an Spezies: " + str(spez_count) + ", daher neues Threshold: " + str(species_threshold))
 	elif spez_count > int(target_species_count * 1.1):
-		species_threshold += 0.2
+		species_threshold += 0.25
 		print("Anzahl an Spezies: " + str(spez_count) + ", daher neues Threshold: " + str(species_threshold))
 	
 	var doodles: int = 0
