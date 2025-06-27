@@ -246,9 +246,9 @@ func mutate(current_max_innov_number: int, mutation_tracker: Dictionary) -> Arra
 			Das Gewicht einer Connection ändert sich. Nicht strukturell / tracked.
 			A.1: Änderung im Intervall +-0.3 (90%)
 			A.2: Änderung mit vollständig zufälligem Wert (10%)
-		B: Connection-Hinzufügen (3%)
+		B: Connection-Hinzufügen (5%)
 			Die Erstellung einer noch nicht bestehenden Connection.
-		C: Node-Hinzufügen (5%)
+		C: Node-Hinzufügen (3%)
 			Die Erstellung einer neuen Node anstelle einer bereits aktiven
 			Connection. Resultiert in der Deaktivierung der alten Connection und
 			der Erstellung von zwei neuen Connections mit der neuen Node (in-
@@ -274,8 +274,8 @@ func mutate(current_max_innov_number: int, mutation_tracker: Dictionary) -> Arra
 			var new_weight = randf_range(-1.0,1.0)
 			connections[con_id].set_weight(new_weight)
 			
-	# Mutation B, Wahrscheinlichkeit 3% & nur falls es nicht-existierende Connections gibt
-	if randf() <= 0.03 and not missing_connections.is_empty():
+	# Mutation B, Wahrscheinlichkeit 5% & nur falls es nicht-existierende Connections gibt
+	if randf() <= 0.05 and not missing_connections.is_empty():
 		var innov_num = current_max_innov_number + 1
 		var added_con_nodes = missing_connections.pick_random()
 		var mutation_key = "add_con_between_%d_%d" % [added_con_nodes[0], added_con_nodes[1]]
@@ -292,8 +292,8 @@ func mutate(current_max_innov_number: int, mutation_tracker: Dictionary) -> Arra
 		add_connection(added_con_nodes[0], added_con_nodes[1], randf(), innov_num)
 		
 	
-	# Mutation C, Wahrscheinlichkeit 5%
-	if randf() <= 0.05:
+	# Mutation C, Wahrscheinlichkeit 3%
+	if randf() <= 0.03:
 		var innov_num_1 = current_max_innov_number + 1
 		var innov_num_2 = current_max_innov_number + 2
 		var replaced_connection_id = enabled_connections.pick_random()
