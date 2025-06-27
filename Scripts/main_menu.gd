@@ -4,7 +4,7 @@ var level: PackedScene = preload("res://Scenes/root.tscn")
 
 func _ready() -> void:
 	# Setze den Seed des globalen Randomizers fest, um Replizierbarkeit zu gewähren
-	#seed(14)
+	seed(99)
 	pass
 
 func _on_train_button_pressed() -> void:

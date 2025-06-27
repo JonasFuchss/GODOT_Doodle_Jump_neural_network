@@ -401,8 +401,9 @@ func spezify(s_and_g: Array[Dictionary]) -> Array[Dictionary]:
 		var gesamt_score_of_species = 0
 		for adj_score in sp["adjusted_scores"]:
 			gesamt_score_of_species += adj_score
-		# falls fitness_of_all_species == 0 ist, muss die Rechnung übersprungen werden,
-		# um Fehler zu vermeiden (0-Division):
+		# falls fitness_of_all_species == 0 ist, muss die Berechnung
+		# des Offspring-Counts übersprungen werden, um Fehler durch eine Null-
+		# Division zu vermeiden.
 		var ct: int = 0
 		if fitness_of_all_species != 0:
 			ct = int((float(gesamt_score_of_species) / float(fitness_of_all_species))*float(pop_count))
